@@ -11,7 +11,7 @@ import org.springframework.lang.Nullable;
  * @author itning
  */
 public class OrikaUtils {
-    public static final MapperFactory MAPPER_FACTORY = new DefaultMapperFactory.Builder().build();
+    private static final MapperFactory MAPPER_FACTORY = new DefaultMapperFactory.Builder().build();
 
     /**
      * 将两个实体合并为一个DTO

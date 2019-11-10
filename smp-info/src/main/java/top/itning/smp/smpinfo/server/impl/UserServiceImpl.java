@@ -14,9 +14,12 @@ import top.itning.smp.smpinfo.entity.StudentUser;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.exception.NullFiledException;
 import top.itning.smp.smpinfo.server.UserService;
+import top.itning.smp.smpinfo.util.IdCardUtils;
 import top.itning.smp.smpinfo.util.OrikaUtils;
 
 import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * @author itning
@@ -64,6 +67,12 @@ public class UserServiceImpl implements UserService {
     public void updateUser(StudentUserDTO studentUserDTO) {
         if (StringUtils.isBlank(studentUserDTO.getId())) {
             throw new NullFiledException("ID为空", HttpStatus.BAD_REQUEST);
+        }
+        if (studentUserDTO.getIdCard() != null) {
+            Map<String, Object> map = IdCardUtils.analysisIdCard(studentUserDTO.getIdCard());
+            studentUserDTO.setAge((Integer) map.get("age"));
+            studentUserDTO.setBirthday((Date) map.get("birthday"));
+            studentUserDTO.setSex((Boolean) map.get("sex"));
         }
         StudentUser savedStudentUser = studentUserDao
                 .findById(studentUserDTO.getId())
