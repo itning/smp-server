@@ -98,4 +98,13 @@ public class UserServiceImpl implements UserService {
         studentUserDao.save(savedStudentUser);
         userDao.save(savedUser);
     }
+
+    @Override
+    public void delUser(String userId) {
+        if (!userDao.existsById(userId) || !studentUserDao.existsById(userId)) {
+            throw new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST);
+        }
+        studentUserDao.deleteById(userId);
+        userDao.deleteById(userId);
+    }
 }

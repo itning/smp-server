@@ -60,4 +60,16 @@ public class UserController {
         userService.updateUser(studentUserDTO);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 删除用户
+     *
+     * @param id ID
+     * @return ResponseEntity
+     */
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> delUser(@PathVariable String id) {
+        userService.delUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }

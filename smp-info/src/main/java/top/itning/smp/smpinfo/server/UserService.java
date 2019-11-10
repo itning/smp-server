@@ -31,4 +31,11 @@ public interface UserService {
      * @param studentUserDTO 用户
      */
     void updateUser(StudentUserDTO studentUserDTO);
+
+    /**
+     * 删除用户
+     *
+     * @param userId 用户ID
+     */
+    void delUser(String userId);
 }
