@@ -11,7 +11,7 @@ import org.springframework.lang.Nullable;
  * @author itning
  */
 public class OrikaUtils {
-    private static final MapperFactory MAPPER_FACTORY = new DefaultMapperFactory.Builder().build();
+    public static final MapperFactory MAPPER_FACTORY = new DefaultMapperFactory.Builder().build();
 
     /**
      * 将两个实体合并为一个DTO
@@ -36,5 +36,18 @@ public class OrikaUtils {
         } else {
             return MAPPER_FACTORY.getMapperFacade().map(input2, result);
         }
+    }
+
+    /**
+     * A 实体 转换 B 实体
+     *
+     * @param a      A实例
+     * @param bClass B类型
+     * @param <A>    A
+     * @param <B>    B
+     * @return B 实例
+     */
+    public static <A, B> B a2b(A a, Class<B> bClass) {
+        return MAPPER_FACTORY.getMapperFacade().map(a, bClass);
     }
 }

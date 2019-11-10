@@ -14,6 +14,10 @@ public class RestModel<T> implements Serializable {
     private String msg;
     private T data;
 
+    public RestModel() {
+
+    }
+
     private RestModel(HttpStatus status, String msg, T data) {
         this(status.value(), msg, data);
     }

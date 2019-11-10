@@ -3,9 +3,9 @@ package top.itning.smp.smpinfo.controller;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.server.UserService;
 
@@ -47,5 +47,17 @@ public class UserController {
                                             direction = Sort.Direction.DESC)
                                             Pageable pageable) {
         return RestModel.ok(userService.searchUsers(key, pageable));
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param studentUserDTO 用户信息
+     * @return ResponseEntity
+     */
+    @PatchMapping("/user")
+    public ResponseEntity<Void> updateUser(@RequestBody StudentUserDTO studentUserDTO) {
+        userService.updateUser(studentUserDTO);
+        return ResponseEntity.noContent().build();
     }
 }

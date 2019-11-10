@@ -24,4 +24,11 @@ public interface UserService {
      * @return 用户
      */
     Page<StudentUserDTO> searchUsers(String key, Pageable pageable);
+
+    /**
+     * 更新用户
+     *
+     * @param studentUserDTO 用户
+     */
+    void updateUser(StudentUserDTO studentUserDTO);
 }

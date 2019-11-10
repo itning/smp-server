@@ -27,11 +27,11 @@ public class StudentUser implements Serializable {
     /**
      * 性别（true 男； false 女）
      */
-    private boolean sex;
+    private Boolean sex;
     /**
      * 年龄
      */
-    private int age;
+    private Integer age;
     /**
      * 学号
      */
