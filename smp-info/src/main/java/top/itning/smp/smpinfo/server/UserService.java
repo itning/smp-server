@@ -15,4 +15,13 @@ public interface UserService {
      * @return 用户
      */
     Page<StudentUserDTO> getAllUser(Pageable pageable);
+
+    /**
+     * 模糊搜索用户
+     *
+     * @param key      关键字
+     * @param pageable 分页数据
+     * @return 用户
+     */
+    Page<StudentUserDTO> searchUsers(String key, Pageable pageable);
 }
