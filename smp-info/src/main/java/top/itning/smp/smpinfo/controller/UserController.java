@@ -5,7 +5,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
+import top.itning.smp.smpinfo.dto.UpFileDTO;
 import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.server.UserService;
 
@@ -71,5 +73,18 @@ public class UserController {
     public ResponseEntity<?> delUser(@PathVariable String id) {
         userService.delUser(id);
         return RestModel.noContent();
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param file 文件
+     * @return 上传
+     */
+    @PostMapping("/user/file")
+    public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file) {
+        UpFileDTO upFileDTO = userService.upFile(file);
+        System.out.println(file.getOriginalFilename());
+        return RestModel.created();
     }
 }

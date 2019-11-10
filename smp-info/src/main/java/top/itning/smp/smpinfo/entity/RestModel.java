@@ -33,6 +33,10 @@ public class RestModel<T> implements Serializable {
         return ResponseEntity.ok(new RestModel<>(HttpStatus.OK, "查询成功", data));
     }
 
+    public static <T> ResponseEntity<RestModel<T>> created() {
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     public static <T> ResponseEntity<RestModel<T>> created(T data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new RestModel<>(HttpStatus.CREATED, "创建成功", data));
     }

@@ -7,9 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dao.StudentUserDao;
 import top.itning.smp.smpinfo.dao.UserDao;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
+import top.itning.smp.smpinfo.dto.UpFileDTO;
 import top.itning.smp.smpinfo.entity.StudentUser;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.exception.NullFiledException;
@@ -115,5 +117,11 @@ public class UserServiceImpl implements UserService {
         }
         studentUserDao.deleteById(userId);
         userDao.deleteById(userId);
+    }
+
+    @Override
+    public UpFileDTO upFile(MultipartFile file) {
+        // TODO excel 解析
+        return new UpFileDTO();
     }
 }

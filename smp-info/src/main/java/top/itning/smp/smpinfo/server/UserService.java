@@ -2,7 +2,9 @@ package top.itning.smp.smpinfo.server;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
+import top.itning.smp.smpinfo.dto.UpFileDTO;
 
 /**
  * @author itning
@@ -38,4 +40,12 @@ public interface UserService {
      * @param userId 用户ID
      */
     void delUser(String userId);
+
+    /**
+     * 上传文件
+     *
+     * @param file 文件
+     * @return 上传信息
+     */
+    UpFileDTO upFile(MultipartFile file);
 }
