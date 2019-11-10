@@ -1,6 +1,7 @@
 package top.itning.smp.smpinfo.entity;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.io.Serializable;
 
@@ -28,8 +29,16 @@ public class RestModel<T> implements Serializable {
         this.data = data;
     }
 
-    public static <T> RestModel ok(T data) {
-        return new RestModel<>(HttpStatus.OK, "查询成功", data);
+    public static <T> ResponseEntity<RestModel<T>> ok(T data) {
+        return ResponseEntity.ok(new RestModel<>(HttpStatus.OK, "查询成功", data));
+    }
+
+    public static <T> ResponseEntity<RestModel<T>> created(T data) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RestModel<>(HttpStatus.CREATED, "创建成功", data));
+    }
+
+    public static ResponseEntity<Void> noContent() {
+        return ResponseEntity.noContent().build();
     }
 
     public int getCode() {

@@ -29,8 +29,8 @@ public class UserController {
      * @return RestModel
      */
     @GetMapping("/users")
-    public RestModel<?> getAllUserInfo(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
-                                               Pageable pageable) {
+    public ResponseEntity<?> getAllUserInfo(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
+                                                    Pageable pageable) {
         return RestModel.ok(userService.getAllUser(pageable));
     }
 
@@ -42,10 +42,10 @@ public class UserController {
      * @return RestModel
      */
     @GetMapping("/search/users/{key}")
-    public RestModel<?> searchUsers(@PathVariable String key,
-                                    @PageableDefault(size = 20, sort = {"gmtModified"},
-                                            direction = Sort.Direction.DESC)
-                                            Pageable pageable) {
+    public ResponseEntity<?> searchUsers(@PathVariable String key,
+                                         @PageableDefault(size = 20, sort = {"gmtModified"},
+                                                 direction = Sort.Direction.DESC)
+                                                 Pageable pageable) {
         return RestModel.ok(userService.searchUsers(key, pageable));
     }
 
@@ -56,9 +56,9 @@ public class UserController {
      * @return ResponseEntity
      */
     @PatchMapping("/user")
-    public ResponseEntity<Void> updateUser(@RequestBody StudentUserDTO studentUserDTO) {
+    public ResponseEntity<?> updateUser(@RequestBody StudentUserDTO studentUserDTO) {
         userService.updateUser(studentUserDTO);
-        return ResponseEntity.noContent().build();
+        return RestModel.noContent();
     }
 
     /**
@@ -68,8 +68,8 @@ public class UserController {
      * @return ResponseEntity
      */
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<Void> delUser(@PathVariable String id) {
+    public ResponseEntity<?> delUser(@PathVariable String id) {
         userService.delUser(id);
-        return ResponseEntity.noContent().build();
+        return RestModel.noContent();
     }
 }
