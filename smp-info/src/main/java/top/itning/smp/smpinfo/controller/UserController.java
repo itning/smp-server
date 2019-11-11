@@ -7,9 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
-import top.itning.smp.smpinfo.dto.UpFileDTO;
 import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.server.UserService;
+
+import java.io.IOException;
 
 /**
  * 用户控制层
@@ -82,9 +83,7 @@ public class UserController {
      * @return 上传
      */
     @PostMapping("/user/file")
-    public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file) {
-        UpFileDTO upFileDTO = userService.upFile(file);
-        System.out.println(file.getOriginalFilename());
-        return RestModel.created();
+    public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file) throws IOException {
+        return RestModel.created(userService.upFile(file));
     }
 }

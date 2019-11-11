@@ -31,7 +31,7 @@ public class Apartment implements Serializable {
     /**
      * 公寓名
      */
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
     /**
      * 创建时间

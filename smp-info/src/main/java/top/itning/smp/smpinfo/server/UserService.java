@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.dto.UpFileDTO;
 
+import java.io.IOException;
+
 /**
  * @author itning
  */
@@ -47,5 +49,5 @@ public interface UserService {
      * @param file 文件
      * @return 上传信息
      */
-    UpFileDTO upFile(MultipartFile file);
+    UpFileDTO upFile(MultipartFile file) throws IOException;
 }
