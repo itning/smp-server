@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.entity;
+package top.itning.smp.smpleave.entity;
 
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,15 +10,15 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 请假表
+ * 用户
  *
  * @author itning
  */
 @Data
-@Entity(name = "student_leave")
-public class Leave implements Serializable {
+@Entity(name = "user")
+public class User implements Serializable {
     /**
-     * ID
+     * 用户ID
      */
     @Id
     @GeneratedValue(generator = "idGenerator")
@@ -26,35 +26,34 @@ public class Leave implements Serializable {
     @Column(length = 36, columnDefinition = "char(36)")
     private String id;
     /**
-     * 学生
+     * 用户姓名
+     */
+    @Column(nullable = false)
+    private String name;
+    /**
+     * 电话
+     */
+    private String tel;
+    /**
+     * 邮箱
+     */
+    private String email;
+    /**
+     * 用户名
+     */
+    @Column(nullable = false, unique = true)
+    private String username;
+    /**
+     * 密码
+     */
+    @Column(nullable = false)
+    private String password;
+    /**
+     * 角色
      */
     @ManyToOne(optional = false)
-    @JoinColumn(name = "userId")
-    private User user;
-    /**
-     * 请假开始时间
-     */
-    @Column(nullable = false)
-    private Date startTime;
-    /**
-     * 请假结束时间
-     */
-    @Column(nullable = false)
-    private Date endTime;
-    /**
-     * 请假类型
-     */
-    @Column(nullable = false)
-    private LeaveType leaveType;
-    /**
-     * 请假原因
-     */
-    @Column(nullable = false, columnDefinition = "text")
-    private String reason;
-    /**
-     * 审核状态（true 通过；false 未通过）
-     */
-    private boolean status;
+    @JoinColumn(name = "roleId")
+    private Role role;
     /**
      * 创建时间
      */

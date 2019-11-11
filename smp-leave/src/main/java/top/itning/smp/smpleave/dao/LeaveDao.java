@@ -1,7 +1,8 @@
-package top.itning.smp.smpinfo.dao;
+package top.itning.smp.smpleave.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import top.itning.smp.smpinfo.entity.Leave;
+import top.itning.smp.smpleave.entity.Leave;
+
 
 /**
  * @author itning

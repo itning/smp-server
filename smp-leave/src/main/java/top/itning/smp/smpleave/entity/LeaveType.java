@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.entity;
+package top.itning.smp.smpleave.entity;
 
 /**
  * 请假类型(课假；寝室假；课假+寝室假)
