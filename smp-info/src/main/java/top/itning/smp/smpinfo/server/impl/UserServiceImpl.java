@@ -358,7 +358,7 @@ public class UserServiceImpl implements UserService {
      * @return 错误消息
      */
     private String initErrorMsg(int rowNum, int cellNum, String format, Object... args) {
-        String info = "在第" + (rowNum + 1) + "行" + "第" + cellNum + "列";
+        String info = "在第" + (rowNum + 1) + "行" + "第" + cellNum + "列 ";
         return String.format(info + format, args);
     }
 }
