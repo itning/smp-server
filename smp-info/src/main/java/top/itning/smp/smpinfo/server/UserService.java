@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.dto.UpFileDTO;
+import top.itning.smp.smpinfo.entity.User;
 
 import java.io.IOException;
 
@@ -50,4 +51,12 @@ public interface UserService {
      * @return 上传信息
      */
     UpFileDTO upFile(MultipartFile file) throws IOException;
+
+    /**
+     * 根据用户名获取用户
+     *
+     * @param username 用户名
+     * @return 用户
+     */
+    User getUserInfoByUserName(String username);
 }

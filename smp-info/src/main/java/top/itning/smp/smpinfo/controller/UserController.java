@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.entity.RestModel;
+import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.server.UserService;
 
 import java.io.IOException;
@@ -85,5 +86,16 @@ public class UserController {
     @PostMapping("/user/file")
     public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file) throws IOException {
         return RestModel.created(userService.upFile(file));
+    }
+
+    /**
+     * 根据用户名获取用户信息
+     *
+     * @param username 用户名
+     * @return 用户信息
+     */
+    @GetMapping("/internal/user/{username}")
+    public User getUserInfoByUserName(@PathVariable String username) {
+        return userService.getUserInfoByUserName(username);
     }
 }

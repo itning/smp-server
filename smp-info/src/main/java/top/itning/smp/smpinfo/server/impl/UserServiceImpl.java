@@ -262,6 +262,11 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public User getUserInfoByUserName(String username) {
+        return userDao.findByUsername(username);
+    }
+
     /**
      * 检查值
      */
