@@ -14,6 +14,7 @@ import java.util.Map;
  * @author itning
  */
 public class IdCardUtils {
+    private static final ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMdd"));
     /**
      * CN 大陆第二代身份证号长度
      */
@@ -32,8 +33,7 @@ public class IdCardUtils {
 
         Map<String, Object> map = Maps.newHashMapWithExpectedSize(3);
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-            Date birthday = simpleDateFormat.parse(idCardNum.substring(6, 14));
+            Date birthday = SIMPLE_DATE_FORMAT_THREAD_LOCAL.get().parse(idCardNum.substring(6, 14));
             map.put("birthday", birthday);
             boolean sex = Integer.parseInt(idCardNum.substring(16, 17)) % 2 != 0;
             map.put("sex", sex);
