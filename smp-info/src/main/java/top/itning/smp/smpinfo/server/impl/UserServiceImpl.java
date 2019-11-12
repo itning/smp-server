@@ -272,6 +272,20 @@ public class UserServiceImpl implements UserService {
         return userDao.findByUsername(username);
     }
 
+    @Override
+    public StudentUserDTO getStudentUserInfoByUserName(String username) {
+        User user = userDao.findByUsername(username);
+        if (user == null) {
+            return null;
+        }
+        Optional<StudentUser> studentUserOptional = studentUserDao.findById(user.getId());
+        if (!studentUserOptional.isPresent()) {
+            return null;
+        }
+        StudentUser studentUser = studentUserOptional.get();
+        return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
+    }
+
     /**
      * 检查值
      */

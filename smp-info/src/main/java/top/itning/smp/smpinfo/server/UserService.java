@@ -59,4 +59,12 @@ public interface UserService {
      * @return 用户
      */
     User getUserInfoByUserName(String username);
+
+    /**
+     * 获取用户信息
+     *
+     * @param username 用户名
+     * @return 用户信息
+     */
+    StudentUserDTO getStudentUserInfoByUserName(String username);
 }

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import top.itning.smp.smpleave.dto.LeaveDTO;
+import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.RestModel;
 import top.itning.smp.smpleave.security.LoginUser;
@@ -49,5 +51,10 @@ public class LeaveController {
     @PostMapping("/leave")
     public ResponseEntity<?> newLeave(Leave leave, @MustStudentLogin LoginUser loginUser) {
         return RestModel.ok(leaveService.newLeave(leave, loginUser));
+    }
+
+    @GetMapping("/leave/search")
+    public ResponseEntity<?> search(SearchDTO searchDTO) {
+        return RestModel.ok(leaveService.search(searchDTO));
     }
 }

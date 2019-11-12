@@ -106,4 +106,15 @@ public class UserController {
     public User getUserInfoByUserName(@PathVariable String username) {
         return userService.getUserInfoByUserName(username);
     }
+
+    /**
+     * 根据用户名获取用户信息
+     *
+     * @param username 用户名
+     * @return 用户信息
+     */
+    @GetMapping("/internal/student_user/{username}")
+    public StudentUserDTO getStudentUserDtoFromUserName(@PathVariable String username) {
+        return userService.getStudentUserInfoByUserName(username);
+    }
 }

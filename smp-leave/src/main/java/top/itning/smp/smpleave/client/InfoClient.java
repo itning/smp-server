@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import top.itning.smp.smpleave.client.entity.StudentUser;
 import top.itning.smp.smpleave.entity.User;
 
 import java.util.Optional;
@@ -22,4 +23,13 @@ public interface InfoClient {
      */
     @GetMapping("/internal/user/{username}")
     Optional<User> getUserInfoByUserName(@PathVariable String username);
+
+    /**
+     * 根据用户名获取用户信息
+     *
+     * @param username 用户名
+     * @return 用户
+     */
+    @GetMapping("/internal/student_user/{username}")
+    Optional<StudentUser> getStudentUserInfoByUserName(@PathVariable String username);
 }
