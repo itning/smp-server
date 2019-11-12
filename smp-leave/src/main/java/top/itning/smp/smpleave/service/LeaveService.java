@@ -3,6 +3,7 @@ package top.itning.smp.smpleave.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import top.itning.smp.smpleave.entity.Leave;
+import top.itning.smp.smpleave.security.LoginUser;
 
 /**
  * @author itning
@@ -19,8 +20,9 @@ public interface LeaveService {
     /**
      * 新增请假信息
      *
-     * @param leave 请假信息
+     * @param leave     请假信息
+     * @param loginUser 登录用户
      * @return 新增的请假信息
      */
-    Leave newLeave(Leave leave);
+    Leave newLeave(Leave leave, LoginUser loginUser);
 }

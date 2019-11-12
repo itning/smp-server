@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.entity.User;
+import top.itning.smp.smpinfo.security.LoginUser;
+import top.itning.smp.smpinfo.security.MustCounselorLogin;
 import top.itning.smp.smpinfo.server.UserService;
 
 import java.io.IOException;
@@ -33,8 +35,10 @@ public class UserController {
      * @return RestModel
      */
     @GetMapping("/users")
+
     public ResponseEntity<?> getAllUserInfo(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
-                                                    Pageable pageable) {
+                                                    Pageable pageable,
+                                            @MustCounselorLogin LoginUser loginUser) {
         return RestModel.ok(userService.getAllUser(pageable));
     }
 
@@ -49,7 +53,8 @@ public class UserController {
     public ResponseEntity<?> searchUsers(@PathVariable String key,
                                          @PageableDefault(size = 20, sort = {"gmtModified"},
                                                  direction = Sort.Direction.DESC)
-                                                 Pageable pageable) {
+                                                 Pageable pageable,
+                                         @MustCounselorLogin LoginUser loginUser) {
         return RestModel.ok(userService.searchUsers(key, pageable));
     }
 
@@ -60,7 +65,8 @@ public class UserController {
      * @return ResponseEntity
      */
     @PatchMapping("/user")
-    public ResponseEntity<?> updateUser(@RequestBody StudentUserDTO studentUserDTO) {
+    public ResponseEntity<?> updateUser(@RequestBody StudentUserDTO studentUserDTO,
+                                        @MustCounselorLogin LoginUser loginUser) {
         userService.updateUser(studentUserDTO);
         return RestModel.noContent();
     }
@@ -72,7 +78,8 @@ public class UserController {
      * @return ResponseEntity
      */
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<?> delUser(@PathVariable String id) {
+    public ResponseEntity<?> delUser(@PathVariable String id,
+                                     @MustCounselorLogin LoginUser loginUser) {
         userService.delUser(id);
         return RestModel.noContent();
     }
@@ -84,7 +91,8 @@ public class UserController {
      * @return 上传
      */
     @PostMapping("/user/file")
-    public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file,
+                                     @MustCounselorLogin LoginUser loginUser) throws IOException {
         return RestModel.created(userService.upFile(file));
     }
 

@@ -48,7 +48,8 @@ public class ErrorFilter extends ZuulFilter {
         ctx.setSendZuulResponse(false);
         ctx.setResponseStatusCode(500);
         HttpServletResponse response = ctx.getResponse();
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("utf-8");
+        response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
         try (PrintWriter writer = response.getWriter()) {
             writer.write("{\"code\":500,\"msg\":\"" + msg + "\",\"data\":\"\"}");
             writer.flush();

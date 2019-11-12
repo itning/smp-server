@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.RestModel;
+import top.itning.smp.smpleave.security.LoginUser;
+import top.itning.smp.smpleave.security.MustCounselorLogin;
+import top.itning.smp.smpleave.security.MustStudentLogin;
 import top.itning.smp.smpleave.service.LeaveService;
 
 /**
@@ -32,12 +35,19 @@ public class LeaveController {
      */
     @GetMapping("/leaves")
     public ResponseEntity<?> allLeaves(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
-                                               Pageable pageable) {
+                                               Pageable pageable,
+                                       @MustCounselorLogin LoginUser loginUser) {
         return RestModel.ok(leaveService.getLeaves(pageable));
     }
 
+    /**
+     * 新增请假信息
+     *
+     * @param leave 请假信息
+     * @return ResponseEntity
+     */
     @PostMapping("/leave")
-    public ResponseEntity<?> newLeave(Leave leave) {
-        return RestModel.ok(leaveService.newLeave(leave));
+    public ResponseEntity<?> newLeave(Leave leave, @MustStudentLogin LoginUser loginUser) {
+        return RestModel.ok(leaveService.newLeave(leave, loginUser));
     }
 }

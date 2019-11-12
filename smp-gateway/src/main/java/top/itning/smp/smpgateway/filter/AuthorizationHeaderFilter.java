@@ -36,7 +36,7 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
     /**
      * 忽略过滤路径
      */
-    private static final String[] IGNORE_SERVER_PATH = {};
+    private static final String[] IGNORE_SERVER_PATH = {"/security/login"};
 
     @Override
     public String filterType() {
@@ -69,6 +69,7 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
             requestContext.setSendZuulResponse(false);
             requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
             HttpServletResponse response = requestContext.getResponse();
+            response.setCharacterEncoding("utf-8");
             response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
             try (PrintWriter writer = response.getWriter()) {
                 writer.write("{\"code\": 401,\"msg\": \"请先登陆\",\"data\": \"\"}");
@@ -80,7 +81,14 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
         } else {
             try {
                 LoginUser loginUser = JwtUtils.getLoginUser(authorizationHeader);
-                Map<String, List<String>> qp = new HashMap<>((int) (5 / 0.75) + 1);
+                Map<String, List<String>> requestQueryParams = requestContext.getRequestQueryParams();
+                Map<String, List<String>> qp;
+                if (requestQueryParams != null && !requestQueryParams.isEmpty()) {
+                    qp = new HashMap<>((int) ((5 + requestQueryParams.size()) / 0.75) + 1);
+                    qp.putAll(requestQueryParams);
+                } else {
+                    qp = new HashMap<>((int) (5 / 0.75) + 1);
+                }
                 qp.put("email", Collections.singletonList(loginUser.getEmail()));
                 qp.put("name", Collections.singletonList(loginUser.getName()));
                 qp.put("tel", Collections.singletonList(loginUser.getTel()));
@@ -91,7 +99,8 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
                 requestContext.setSendZuulResponse(false);
                 requestContext.setResponseStatusCode(e.getCode().value());
                 HttpServletResponse response = requestContext.getResponse();
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding("utf-8");
+                response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
                 try (PrintWriter writer = response.getWriter()) {
                     writer.write("{" +
                             "\"code\":" +

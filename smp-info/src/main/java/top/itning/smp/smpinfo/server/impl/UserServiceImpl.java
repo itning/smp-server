@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<StudentUserDTO> getAllUser(Pageable pageable) {
         return userDao.
-                findAll(pageable).
+                findByRole(Role.withStudentUser(), pageable).
                 map(user -> {
                     StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
                     return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
@@ -99,7 +99,12 @@ public class UserServiceImpl implements UserService {
                 return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
             });
         } else {
-            Page<User> userPage = userDao.findAll((Specification<User>) (root, query, criteriaBuilder) -> criteriaBuilder.and(criteriaBuilder.like(root.get("name"), "%" + key + "%")), pageable);
+            Page<User> userPage = userDao.findAll((Specification<User>) (root, query, criteriaBuilder) -> criteriaBuilder.and
+                            (
+                                    criteriaBuilder.like(root.get("name"), "%" + key + "%"),
+                                    criteriaBuilder.equal(root.get("role"), Role.withStudentUser())
+                            ),
+                    pageable);
             return userPage.map(user -> {
                 StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
                 return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
