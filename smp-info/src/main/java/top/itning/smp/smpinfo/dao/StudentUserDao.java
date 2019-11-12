@@ -16,7 +16,7 @@ public interface StudentUserDao extends JpaRepository<StudentUser, String>, JpaS
      * @param apartmentId 公寓ID
      * @return 人数
      */
-    @Query(name = "select count(*) from student_user where apartment_id = ?", nativeQuery = true)
+    @Query(value = "select count(*) from student_user where apartment_id = ?", nativeQuery = true)
     long countByApartmentId(String apartmentId);
 
     /**

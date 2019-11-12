@@ -32,7 +32,8 @@ public interface LeaveService {
      * 搜索
      *
      * @param searchDTO 关键字
+     * @param pageable  分页
      * @return 请假信息集合
      */
-    Page<LeaveDTO> search(SearchDTO searchDTO);
+    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable);
 }
