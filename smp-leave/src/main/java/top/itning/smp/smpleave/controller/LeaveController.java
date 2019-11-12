@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.RestModel;
 import top.itning.smp.smpleave.security.LoginUser;
@@ -57,16 +56,14 @@ public class LeaveController {
      * 搜索
      *
      * @param pageable  分页
-     * @param searchDTO 查询条件
+     * @param key 查询条件
      * @return ResponseEntity
      */
     @GetMapping("/search/leaves/{key}")
     public ResponseEntity<?> search(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                             Pageable pageable,
-                                    SearchDTO searchDTO,
                                     @MustCounselorLogin LoginUser loginUser,
                                     @PathVariable String key) {
-        searchDTO.setKey(key);
-        return RestModel.ok(leaveService.search(searchDTO, pageable));
+        return RestModel.ok(leaveService.search(key, pageable));
     }
 }

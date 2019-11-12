@@ -13,7 +13,6 @@ import top.itning.smp.smpleave.client.InfoClient;
 import top.itning.smp.smpleave.client.entity.StudentUser;
 import top.itning.smp.smpleave.dao.LeaveDao;
 import top.itning.smp.smpleave.dto.LeaveDTO;
-import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.User;
 import top.itning.smp.smpleave.exception.UnexpectedException;
@@ -21,6 +20,12 @@ import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
 import top.itning.smp.smpleave.util.OrikaUtils;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,10 +70,9 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable) {
+    public Page<LeaveDTO> search(String key, Pageable pageable) {
         int pageNumber = pageable.getPageNumber();
         int pageSize = pageable.getPageSize();
-        String key = searchDTO.getKey();
         List<LeaveDTO> leaves = leaveDao.findByKey("%" + key + "%", pageNumber * pageSize, pageSize, true)
                 .parallelStream()
                 .map(leave -> {
@@ -78,5 +82,42 @@ public class LeaveServiceImpl implements LeaveService {
                     return leaveDTO;
                 }).collect(Collectors.toList());
         return new PageImpl<>(leaves, pageable, leaveDao.countByKey("%" + key + "%", pageNumber * pageSize, pageSize, true));
+    }
+
+    /**
+     * 日期区间查询
+     *
+     * @param logger    日志工厂
+     * @param list      条件集合
+     * @param cb        CriteriaBuilder
+     * @param root      Root Staff
+     * @param field     查询字段
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     */
+    private void dateIntervalQuery(Logger logger, List<Predicate> list, CriteriaBuilder cb, Root<Leave> root, String field, Date startDate, Date endDate) {
+        //有开始有结束
+        if (startDate != null && endDate != null) {
+            logger.info("dateIntervalQuery::已获取到开始和结束时间");
+            list.add(cb.between(root.get(field), startDate, endDate));
+        } else {
+            Date minDate = null;
+            Date maxDate = null;
+            try {
+                minDate = new SimpleDateFormat("yyyy-MM-dd").parse("2001-01-01");
+                maxDate = new SimpleDateFormat("yyyy-MM-dd").parse("9999-12-31");
+            } catch (ParseException e) {
+                //不可能的异常
+                logger.error("dateIntervalQuery::日期转换出现问题?" + e.getMessage());
+            }
+            //只有开始时间
+            if (startDate != null) {
+                logger.debug("dateIntervalQuery::已获取到开始时间");
+                list.add(cb.between(root.get(field), startDate, maxDate));
+            } else {//只有结束时间
+                logger.debug("dateIntervalQuery::已获取到结束时间");
+                list.add(cb.between(root.get(field), minDate, endDate));
+            }
+        }
     }
 }
