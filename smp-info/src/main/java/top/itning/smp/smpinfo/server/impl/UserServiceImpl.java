@@ -30,8 +30,7 @@ import top.itning.smp.smpinfo.server.UserService;
 import top.itning.smp.smpinfo.util.IdCardUtils;
 import top.itning.smp.smpinfo.util.OrikaUtils;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -85,23 +84,8 @@ public class UserServiceImpl implements UserService {
     public Page<StudentUserDTO> getAllUser(Pageable pageable) {
         Sort.Order order = pageable.getSort().toList().get(0);
         Page<StudentUserDTO> page = userDao.findAll((Specification<User>) (root, query, cb) -> {
-            if ("gmtModified".equals(order.getProperty()) ||
-                    "name".equals(order.getProperty()) ||
-                    "tel".equals(order.getProperty()) ||
-                    "email".equals(order.getProperty())) {
-                if (order.isDescending()) {
-                    query.orderBy(cb.desc(root.get(order.getProperty())));
-                } else {
-                    query.orderBy(cb.asc(root.get(order.getProperty())));
-                }
-            } else {
-                Join<User, StudentUser> studentUserJoin = root.join("studentUser", JoinType.INNER);
-                if (order.isDescending()) {
-                    query.orderBy(cb.desc(studentUserJoin.get(order.getProperty())));
-                } else {
-                    query.orderBy(cb.asc(studentUserJoin.get(order.getProperty())));
-                }
-            }
+            Join<User, StudentUser> studentUserJoin = root.join("studentUser", JoinType.INNER);
+            order(query, cb, order, root, studentUserJoin, "gmtModified", "name", "tel", "email");
             return cb.and(cb.equal(root.get("role"), Role.withStudentUser()));
         }, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()))
                 .map(user -> {
@@ -113,24 +97,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<StudentUserDTO> searchUsers(String key, Pageable pageable) {
-        if (StringUtils.isNumeric(key)) {
-            Page<StudentUser> studentUserPage = studentUserDao.findAll((Specification<StudentUser>) (root, query, criteriaBuilder) -> criteriaBuilder.and(criteriaBuilder.like(root.get("studentId"), "%" + key + "%")), pageable);
-            return studentUserPage.map(studentUser -> {
-                User user = userDao.findById(studentUser.getId()).orElse(null);
-                return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
-            });
-        } else {
-            Page<User> userPage = userDao.findAll((Specification<User>) (root, query, criteriaBuilder) -> criteriaBuilder.and
-                            (
-                                    criteriaBuilder.like(root.get("name"), "%" + key + "%"),
-                                    criteriaBuilder.equal(root.get("role"), Role.withStudentUser())
-                            ),
-                    pageable);
-            return userPage.map(user -> {
-                StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
-                return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
-            });
-        }
+        Sort.Order order = pageable.getSort().toList().get(0);
+        Page<StudentUserDTO> userPage = userDao.findAll((Specification<User>) (root, query, cb) -> {
+                    List<Predicate> list = new ArrayList<>();
+                    Join<User, StudentUser> studentUserJoin = root.join("studentUser", JoinType.INNER);
+
+                    if (StringUtils.isNumeric(key)) {
+                        list.add(cb.like(studentUserJoin.get("studentId"), "%" + key + "%"));
+                    } else {
+                        list.add(cb.like(root.get("name"), "%" + key + "%"));
+                    }
+                    list.add(cb.equal(root.get("role"), Role.withStudentUser()));
+
+                    order(query, cb, order, root, studentUserJoin, "gmtModified", "name", "tel", "email");
+
+                    Predicate[] p = new Predicate[list.size()];
+                    return cb.and(list.toArray(p));
+                },
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize())).map(user -> {
+            StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
+            return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
+        });
+        return new PageImpl<>(userPage.getContent(), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort()), userPage.getTotalElements());
     }
 
     @Override
@@ -405,5 +393,28 @@ public class UserServiceImpl implements UserService {
     private String initErrorMsg(int rowNum, int cellNum, String format, Object... args) {
         String info = "在第" + (rowNum + 1) + "行" + "第" + cellNum + "列 ";
         return String.format(info + format, args);
+    }
+
+    private <A, B> void order(CriteriaQuery<?> query, CriteriaBuilder cb, Sort.Order order, Root<A> root, Join<A, B> join, String... noJoinStr) {
+        boolean noJoin = false;
+        for (String s : noJoinStr) {
+            if (s.equals(order.getProperty())) {
+                noJoin = true;
+                break;
+            }
+        }
+        if (noJoin) {
+            if (order.isDescending()) {
+                query.orderBy(cb.desc(root.get(order.getProperty())));
+            } else {
+                query.orderBy(cb.asc(root.get(order.getProperty())));
+            }
+        } else {
+            if (order.isDescending()) {
+                query.orderBy(cb.desc(join.get(order.getProperty())));
+            } else {
+                query.orderBy(cb.asc(join.get(order.getProperty())));
+            }
+        }
     }
 }
