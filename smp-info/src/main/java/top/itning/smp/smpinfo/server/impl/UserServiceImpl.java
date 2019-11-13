@@ -395,6 +395,18 @@ public class UserServiceImpl implements UserService {
         return String.format(info + format, args);
     }
 
+    /**
+     * 排序
+     *
+     * @param query     CriteriaQuery
+     * @param cb        CriteriaBuilder
+     * @param order     Sort.Order
+     * @param root      Root
+     * @param join      Join
+     * @param noJoinStr 不需要JOIN的字段
+     * @param <A>       A 实体
+     * @param <B>       B 实体
+     */
     private <A, B> void order(CriteriaQuery<?> query, CriteriaBuilder cb, Sort.Order order, Root<A> root, Join<A, B> join, String... noJoinStr) {
         boolean noJoin = false;
         for (String s : noJoinStr) {
