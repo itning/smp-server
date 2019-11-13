@@ -5,20 +5,23 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户
+ * 公寓信息
  *
  * @author itning
  */
 @Data
-@Entity(name = "user")
-public class User implements Serializable {
+@Entity(name = "apartment")
+public class Apartment implements Serializable {
     /**
-     * 用户ID
+     * ID
      */
     @Id
     @GeneratedValue(generator = "idGenerator")
@@ -26,40 +29,10 @@ public class User implements Serializable {
     @Column(length = 36, columnDefinition = "char(36)")
     private String id;
     /**
-     * 用户姓名
-     */
-    @Column(nullable = false)
-    private String name;
-    /**
-     * 电话
-     */
-    private String tel;
-    /**
-     * 邮箱
-     */
-    private String email;
-    /**
-     * 用户名
+     * 公寓名
      */
     @Column(nullable = false, unique = true)
-    private String username;
-    /**
-     * 密码
-     */
-    @Column(nullable = false)
-    private String password;
-    /**
-     * 角色
-     */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "roleId")
-    private Role role;
-    /**
-     * 所对应的学生
-     */
-    @OneToOne
-    @PrimaryKeyJoinColumn
-    private StudentUser studentUser;
+    private String name;
     /**
      * 创建时间
      */

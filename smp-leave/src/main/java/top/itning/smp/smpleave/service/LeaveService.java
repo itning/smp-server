@@ -3,6 +3,7 @@ package top.itning.smp.smpleave.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import top.itning.smp.smpleave.dto.LeaveDTO;
+import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.security.LoginUser;
 
@@ -34,5 +35,5 @@ public interface LeaveService {
      * @param pageable  分页
      * @return 请假信息集合
      */
-    Page<LeaveDTO> search(String key, Pageable pageable);
+    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable);
 }

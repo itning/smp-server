@@ -1,11 +1,13 @@
 package top.itning.smp.smpleave.service.impl;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ import top.itning.smp.smpleave.client.InfoClient;
 import top.itning.smp.smpleave.client.entity.StudentUser;
 import top.itning.smp.smpleave.dao.LeaveDao;
 import top.itning.smp.smpleave.dto.LeaveDTO;
+import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.User;
 import top.itning.smp.smpleave.exception.UnexpectedException;
@@ -20,14 +23,13 @@ import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
 import top.itning.smp.smpleave.util.OrikaUtils;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * @author itning
@@ -70,18 +72,54 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> search(String key, Pageable pageable) {
-        int pageNumber = pageable.getPageNumber();
-        int pageSize = pageable.getPageSize();
-        List<LeaveDTO> leaves = leaveDao.findByKey("%" + key + "%", pageNumber * pageSize, pageSize, true)
-                .parallelStream()
+    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable) {
+        return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
+
+            if (StringUtils.isNumeric(searchDTO.getKey())) {
+                logger.debug("search student id: {}", searchDTO.getKey());
+                Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+                list.add(cb.like(studentUserJoin.get("studentId"), "%" + searchDTO.getKey() + "%"));
+            } else {
+                logger.debug("search user name: {}", searchDTO.getKey());
+                list.add(cb.like(userJoin.get("name"), "%" + searchDTO.getKey() + "%"));
+            }
+
+            if (Objects.nonNull(searchDTO.getLeaveType())) {
+                logger.debug("search leave type: {}", searchDTO.getLeaveType());
+                list.add(cb.equal(root.get("leaveType"), searchDTO.getLeaveType()));
+            }
+
+            list.add(cb.equal(root.get("status"), 1));
+
+            if (ObjectUtils.allNotNull(searchDTO.getStartTime(), searchDTO.getEndTime())) {
+                logger.debug("search between start time {} {}", searchDTO.getStartTime(), searchDTO.getEndTime());
+                dateIntervalQuery(logger, list, cb, root, "startTime", searchDTO.getStartTime(), searchDTO.getEndTime());
+            }
+
+            if (Objects.nonNull(searchDTO.getEffective())) {
+                if (searchDTO.getEffective()) {
+                    logger.debug("search < end time");
+                    dateIntervalQuery(logger, list, cb, root, "endTime", new Date(), null);
+                } else {
+                    logger.debug("search > end time");
+                    dateIntervalQuery(logger, list, cb, root, "endTime", null, new Date());
+                }
+            }
+
+            Predicate[] p = new Predicate[list.size()];
+
+            query.orderBy(cb.desc(root.get("gmtModified")));
+
+            return cb.and(list.toArray(p));
+        }, pageable)
                 .map(leave -> {
                     StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
                     LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
                     leaveDTO.setStudentUser(studentUser);
                     return leaveDTO;
-                }).collect(Collectors.toList());
-        return new PageImpl<>(leaves, pageable, leaveDao.countByKey("%" + key + "%", pageNumber * pageSize, pageSize, true));
+                });
     }
 
     /**
@@ -98,7 +136,7 @@ public class LeaveServiceImpl implements LeaveService {
     private void dateIntervalQuery(Logger logger, List<Predicate> list, CriteriaBuilder cb, Root<Leave> root, String field, Date startDate, Date endDate) {
         //有开始有结束
         if (startDate != null && endDate != null) {
-            logger.info("dateIntervalQuery::已获取到开始和结束时间");
+            logger.debug("dateIntervalQuery::已获取到开始和结束时间");
             list.add(cb.between(root.get(field), startDate, endDate));
         } else {
             Date minDate = null;

@@ -1,20 +1,27 @@
 package top.itning.smp.smpleave.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.RestModel;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.security.MustCounselorLogin;
 import top.itning.smp.smpleave.security.MustStudentLogin;
 import top.itning.smp.smpleave.service.LeaveService;
+
+import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author itning
@@ -26,6 +33,13 @@ public class LeaveController {
     @Autowired
     public LeaveController(LeaveService leaveService) {
         this.leaveService = leaveService;
+    }
+
+    @InitBinder
+    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) {
+        binder.registerCustomEditor(
+                Date.class,
+                new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), true));
     }
 
     /**
@@ -56,14 +70,14 @@ public class LeaveController {
      * 搜索
      *
      * @param pageable  分页
-     * @param key 查询条件
+     * @param searchDTO 查询条件
      * @return ResponseEntity
      */
-    @GetMapping("/search/leaves/{key}")
+    @GetMapping("/search/leaves")
     public ResponseEntity<?> search(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                             Pageable pageable,
                                     @MustCounselorLogin LoginUser loginUser,
-                                    @PathVariable String key) {
-        return RestModel.ok(leaveService.search(key, pageable));
+                                    SearchDTO searchDTO) {
+        return RestModel.ok(leaveService.search(searchDTO, pageable));
     }
 }
