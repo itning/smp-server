@@ -14,10 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpleave.client.InfoClient;
 import top.itning.smp.smpleave.client.entity.StudentUser;
 import top.itning.smp.smpleave.dao.LeaveDao;
+import top.itning.smp.smpleave.dao.LeaveReasonDao;
 import top.itning.smp.smpleave.dto.LeaveDTO;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
+import top.itning.smp.smpleave.entity.LeaveReason;
 import top.itning.smp.smpleave.entity.User;
+import top.itning.smp.smpleave.exception.NullFiledException;
 import top.itning.smp.smpleave.exception.UnexpectedException;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
@@ -26,10 +29,8 @@ import top.itning.smp.smpleave.util.OrikaUtils;
 import javax.persistence.criteria.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author itning
@@ -41,19 +42,22 @@ public class LeaveServiceImpl implements LeaveService {
 
     private final LeaveDao leaveDao;
     private final InfoClient infoClient;
+    private final LeaveReasonDao leaveReasonDao;
 
     @Autowired
-    public LeaveServiceImpl(LeaveDao leaveDao, InfoClient infoClient) {
+    public LeaveServiceImpl(LeaveDao leaveDao, InfoClient infoClient, LeaveReasonDao leaveReasonDao) {
         this.leaveDao = leaveDao;
         this.infoClient = infoClient;
+        this.leaveReasonDao = leaveReasonDao;
     }
 
     @Override
-    public Page<LeaveDTO> getLeaves(Pageable pageable) {
-        return leaveDao.findAllByStatus(true, pageable).map(leave -> {
+    public Page<LeaveDTO> getLeaves(Pageable pageable, boolean status) {
+        return leaveDao.findAllByStatus(status, pageable).map(leave -> {
             StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
             LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
             leaveDTO.setStudentUser(studentUser);
+            leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
             return leaveDTO;
         });
     }
@@ -72,7 +76,7 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable) {
+    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, boolean status) {
         return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
@@ -91,20 +95,20 @@ public class LeaveServiceImpl implements LeaveService {
                 list.add(cb.equal(root.get("leaveType"), searchDTO.getLeaveType()));
             }
 
-            list.add(cb.equal(root.get("status"), 1));
+            list.add(cb.equal(root.get("status"), status));
 
             if (ObjectUtils.allNotNull(searchDTO.getStartTime(), searchDTO.getEndTime())) {
                 logger.debug("search between start time {} {}", searchDTO.getStartTime(), searchDTO.getEndTime());
-                dateIntervalQuery(logger, list, cb, root, "startTime", searchDTO.getStartTime(), searchDTO.getEndTime());
+                dateIntervalQuery(list, cb, root, "startTime", searchDTO.getStartTime(), searchDTO.getEndTime());
             }
 
             if (Objects.nonNull(searchDTO.getEffective())) {
                 if (searchDTO.getEffective()) {
                     logger.debug("search < end time");
-                    dateIntervalQuery(logger, list, cb, root, "endTime", new Date(), null);
+                    dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
                 } else {
                     logger.debug("search > end time");
-                    dateIntervalQuery(logger, list, cb, root, "endTime", null, new Date());
+                    dateIntervalQuery(list, cb, root, "endTime", null, new Date());
                 }
             }
 
@@ -122,10 +126,39 @@ public class LeaveServiceImpl implements LeaveService {
                 });
     }
 
+    @Override
+    public LeaveReason newComment(String leaveId, String comment, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (StringUtils.isAnyBlank(leaveId, comment)) {
+            throw new NullFiledException("参数为空", HttpStatus.BAD_REQUEST);
+        }
+        Leave leave = leaveDao.findById(leaveId).orElseThrow(() -> new NullFiledException("请假信息不存在", HttpStatus.BAD_REQUEST));
+        List<LeaveReason> leaveReasonList = leave.getLeaveReasonList();
+        if (leaveReasonList == null) {
+            leaveReasonList = new ArrayList<>(1);
+        }
+        LeaveReason leaveReason = new LeaveReason();
+        leaveReason.setFromUser(user);
+        leaveReason.setComment(comment);
+        leaveReasonList.add(leaveReason);
+        leave.setLeaveReasonList(leaveReasonList);
+        return leaveReasonDao.save(leaveReason);
+    }
+
+    @Override
+    public void leaveCheckStatusChangeTrue(String leaveId) {
+        Leave leave = leaveDao.findById(leaveId).orElseThrow(() -> new NullFiledException("请假ID不存在", HttpStatus.BAD_REQUEST));
+        leave.setStatus(true);
+        leaveDao.save(leave);
+    }
+
     /**
      * 日期区间查询
      *
-     * @param logger    日志工厂
      * @param list      条件集合
      * @param cb        CriteriaBuilder
      * @param root      Root Staff
@@ -133,7 +166,7 @@ public class LeaveServiceImpl implements LeaveService {
      * @param startDate 开始日期
      * @param endDate   结束日期
      */
-    private void dateIntervalQuery(Logger logger, List<Predicate> list, CriteriaBuilder cb, Root<Leave> root, String field, Date startDate, Date endDate) {
+    private void dateIntervalQuery(List<Predicate> list, CriteriaBuilder cb, Root<Leave> root, String field, Date startDate, Date endDate) {
         //有开始有结束
         if (startDate != null && endDate != null) {
             logger.debug("dateIntervalQuery::已获取到开始和结束时间");

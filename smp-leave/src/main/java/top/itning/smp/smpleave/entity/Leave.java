@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 请假表
@@ -56,6 +57,12 @@ public class Leave implements Serializable {
      */
     @Column(nullable = false)
     private boolean status;
+    /**
+     * 评论
+     */
+    @OneToMany
+    @JoinColumn(name = "leaveId")
+    private List<LeaveReason> leaveReasonList;
     /**
      * 创建时间
      */

@@ -2,10 +2,12 @@ package top.itning.smp.smpleave.dto;
 
 import lombok.Data;
 import top.itning.smp.smpleave.client.entity.StudentUser;
+import top.itning.smp.smpleave.entity.LeaveReason;
 import top.itning.smp.smpleave.entity.LeaveType;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -40,6 +42,10 @@ public class LeaveDTO implements Serializable {
      * 审核状态（true 通过；false 未通过）
      */
     private Boolean status;
+    /**
+     * 评论
+     */
+    private List<LeaveReason> leaveReasonList;
     /**
      * 创建时间
      */
