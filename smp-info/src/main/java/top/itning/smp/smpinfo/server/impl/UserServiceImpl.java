@@ -9,8 +9,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,8 @@ import top.itning.smp.smpinfo.server.UserService;
 import top.itning.smp.smpinfo.util.IdCardUtils;
 import top.itning.smp.smpinfo.util.OrikaUtils;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -82,12 +83,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<StudentUserDTO> getAllUser(Pageable pageable) {
-        return userDao.
-                findByRole(Role.withStudentUser(), pageable).
-                map(user -> {
+        Sort.Order order = pageable.getSort().toList().get(0);
+        Page<StudentUserDTO> page = userDao.findAll((Specification<User>) (root, query, cb) -> {
+            if ("gmtModified".equals(order.getProperty()) ||
+                    "name".equals(order.getProperty()) ||
+                    "tel".equals(order.getProperty()) ||
+                    "email".equals(order.getProperty())) {
+                if (order.isDescending()) {
+                    query.orderBy(cb.desc(root.get(order.getProperty())));
+                } else {
+                    query.orderBy(cb.asc(root.get(order.getProperty())));
+                }
+            } else {
+                Join<User, StudentUser> studentUserJoin = root.join("studentUser", JoinType.INNER);
+                if (order.isDescending()) {
+                    query.orderBy(cb.desc(studentUserJoin.get(order.getProperty())));
+                } else {
+                    query.orderBy(cb.asc(studentUserJoin.get(order.getProperty())));
+                }
+            }
+            return cb.and(cb.equal(root.get("role"), Role.withStudentUser()));
+        }, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()))
+                .map(user -> {
                     StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
                     return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
                 });
+        return new PageImpl<>(page.getContent(), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort()), page.getTotalElements());
     }
 
     @Override

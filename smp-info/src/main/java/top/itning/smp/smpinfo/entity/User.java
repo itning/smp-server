@@ -55,6 +55,12 @@ public class User implements Serializable {
     @JoinColumn(name = "roleId")
     private Role role;
     /**
+     * 所对应的学生
+     */
+    @OneToOne
+    @PrimaryKeyJoinColumn
+    private StudentUser studentUser;
+    /**
      * 创建时间
      */
     @Column(nullable = false)

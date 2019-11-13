@@ -113,9 +113,6 @@ public class LeaveServiceImpl implements LeaveService {
             }
 
             Predicate[] p = new Predicate[list.size()];
-
-            query.orderBy(cb.desc(root.get("gmtModified")));
-
             return cb.and(list.toArray(p));
         }, pageable)
                 .map(leave -> {
