@@ -19,7 +19,7 @@ public interface LeaveService {
      * @param status   状态
      * @return 请假信息集合
      */
-    Page<LeaveDTO> getLeaves(Pageable pageable, boolean status);
+    Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status);
 
     /**
      * 新增请假信息
@@ -38,7 +38,7 @@ public interface LeaveService {
      * @param status    审批状态
      * @return 请假信息集合
      */
-    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, boolean status);
+    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status);
 
     /**
      * 新增评论
@@ -54,6 +54,7 @@ public interface LeaveService {
      * 审核通过
      *
      * @param leaveId 请假ID
+     * @param status  状态
      */
-    void leaveCheckStatusChangeTrue(String leaveId);
+    void leaveCheckStatusChange(String leaveId, boolean status);
 }

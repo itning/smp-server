@@ -23,7 +23,7 @@ public interface LeaveDao extends JpaRepository<Leave, String>, JpaSpecification
      * @param pageable 分页
      * @return 请假信息
      */
-    Page<Leave> findAllByStatus(boolean status, Pageable pageable);
+    Page<Leave> findAllByStatus(Boolean status, Pageable pageable);
 
     /**
      * 根据学号或姓名查询学生请假信息

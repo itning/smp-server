@@ -53,10 +53,10 @@ public class Leave implements Serializable {
     @Column(nullable = false, columnDefinition = "text")
     private String reason;
     /**
-     * 审核状态（true 通过；false 未通过）
+     * 审核状态（true 通过；false 未通过；null 未审核）
      */
-    @Column(nullable = false)
-    private boolean status;
+    @Column
+    private Boolean status;
     /**
      * 评论
      */

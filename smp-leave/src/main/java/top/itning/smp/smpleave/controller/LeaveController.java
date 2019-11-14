@@ -63,7 +63,7 @@ public class LeaveController {
     public ResponseEntity<?> allCheckLeaves(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                                     Pageable pageable,
                                             @MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(leaveService.getLeaves(pageable, false));
+        return RestModel.ok(leaveService.getLeaves(pageable, null));
     }
 
     /**
@@ -92,7 +92,7 @@ public class LeaveController {
                                                  Pageable pageable,
                                          @MustCounselorLogin LoginUser loginUser,
                                          SearchDTO searchDTO) {
-        return RestModel.ok(leaveService.search(searchDTO, pageable, false));
+        return RestModel.ok(leaveService.search(searchDTO, pageable, null));
     }
 
     /**
@@ -101,10 +101,11 @@ public class LeaveController {
      * @param leaveId 请假ID
      * @return ResponseEntity
      */
-    @PostMapping("/leave/status/true")
+    @PostMapping("/leave/status")
     public ResponseEntity<?> leaveCheckStatusChangeTrue(@RequestParam String leaveId,
+                                                        @RequestParam boolean status,
                                                         @MustCounselorLogin LoginUser loginUser) {
-        leaveService.leaveCheckStatusChangeTrue(leaveId);
+        leaveService.leaveCheckStatusChange(leaveId, status);
         return RestModel.noContent();
     }
 

@@ -52,7 +52,7 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> getLeaves(Pageable pageable, boolean status) {
+    public Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status) {
         return leaveDao.findAllByStatus(status, pageable).map(leave -> {
             StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
             LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
@@ -76,7 +76,7 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, boolean status) {
+    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status) {
         return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
@@ -95,7 +95,11 @@ public class LeaveServiceImpl implements LeaveService {
                 list.add(cb.equal(root.get("leaveType"), searchDTO.getLeaveType()));
             }
 
-            list.add(cb.equal(root.get("status"), status));
+            if (Objects.isNull(status)) {
+                list.add(cb.isNull(root.get("status")));
+            } else {
+                list.add(cb.equal(root.get("status"), status));
+            }
 
             if (ObjectUtils.allNotNull(searchDTO.getStartTime(), searchDTO.getEndTime())) {
                 logger.debug("search between start time {} {}", searchDTO.getStartTime(), searchDTO.getEndTime());
@@ -147,9 +151,9 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public void leaveCheckStatusChangeTrue(String leaveId) {
+    public void leaveCheckStatusChange(String leaveId, boolean status) {
         Leave leave = leaveDao.findById(leaveId).orElseThrow(() -> new NullFiledException("请假ID不存在", HttpStatus.BAD_REQUEST));
-        leave.setStatus(true);
+        leave.setStatus(status);
         leaveDao.save(leave);
     }
 
