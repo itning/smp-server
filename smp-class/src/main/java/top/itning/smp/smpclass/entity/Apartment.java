@@ -1,22 +1,25 @@
-package top.itning.smp.smpinfo.entity;
+package top.itning.smp.smpclass.entity;
 
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 学生寝室签到表
+ * 公寓信息
  *
  * @author itning
  */
 @Data
-@Entity(name = "student_room_check")
-public class StudentRoomCheck implements Serializable {
+@Entity(name = "apartment")
+public class Apartment implements Serializable {
     /**
      * ID
      */
@@ -26,16 +29,10 @@ public class StudentRoomCheck implements Serializable {
     @Column(length = 36, columnDefinition = "char(36)")
     private String id;
     /**
-     * 学生
+     * 公寓名
      */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "userId")
-    private User user;
-    /**
-     * 签到时间
-     */
-    @Column(nullable = false)
-    private Date checkTime;
+    @Column(nullable = false, unique = true)
+    private String name;
     /**
      * 创建时间
      */

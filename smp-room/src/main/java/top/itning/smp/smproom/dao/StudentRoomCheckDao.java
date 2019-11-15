@@ -1,7 +1,7 @@
-package top.itning.smp.smpinfo.dao;
+package top.itning.smp.smproom.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import top.itning.smp.smpinfo.entity.StudentRoomCheck;
+import top.itning.smp.smproom.entity.StudentRoomCheck;
 
 /**
  * @author itning

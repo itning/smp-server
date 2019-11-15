@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.entity;
+package top.itning.smp.smpclass.entity;
 
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
