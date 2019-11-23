@@ -26,8 +26,10 @@ public interface RoomService {
      *
      * @param file      文件
      * @param loginUser 登录用户
+     * @param longitude 经度
+     * @param latitude  纬度
      * @return 打卡信息
      * @throws IOException 保存文件可能出现的异常
      */
-    StudentRoomCheck check(MultipartFile file, LoginUser loginUser) throws IOException;
+    StudentRoomCheck check(MultipartFile file, LoginUser loginUser, double longitude, double latitude) throws IOException;
 }

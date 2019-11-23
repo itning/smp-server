@@ -57,13 +57,17 @@ public class RoomController {
     /**
      * 学生打卡
      *
-     * @param file 图片
+     * @param file      图片
+     * @param longitude 经度
+     * @param latitude  纬度
      * @return 打卡信息
      * @throws IOException 保存异常
      */
     @PostMapping("/check")
     public ResponseEntity<?> check(@MustStudentLogin LoginUser loginUser,
-                                   @RequestParam("file") MultipartFile file) throws IOException {
-        return RestModel.created(roomService.check(file, loginUser));
+                                   @RequestParam("file") MultipartFile file,
+                                   @RequestParam("longitude") double longitude,
+                                   @RequestParam("latitude") double latitude) throws IOException {
+        return RestModel.created(roomService.check(file, loginUser, longitude, latitude));
     }
 }

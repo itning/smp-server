@@ -37,6 +37,16 @@ public class StudentRoomCheck implements Serializable {
     @Column(nullable = false)
     private Date checkTime;
     /**
+     * 经度
+     */
+    @Column(nullable = false)
+    private double longitude;
+    /**
+     * 纬度
+     */
+    @Column(nullable = false)
+    private double latitude;
+    /**
      * 创建时间
      */
     @Column(nullable = false)

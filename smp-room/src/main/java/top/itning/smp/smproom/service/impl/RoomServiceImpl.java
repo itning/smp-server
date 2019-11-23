@@ -14,6 +14,7 @@ import top.itning.smp.smproom.client.InfoClient;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.entity.User;
+import top.itning.smp.smproom.exception.GpsException;
 import top.itning.smp.smproom.exception.SavedException;
 import top.itning.smp.smproom.exception.UserNameDoesNotExistException;
 import top.itning.smp.smproom.security.LoginUser;
@@ -46,10 +47,15 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public StudentRoomCheck check(MultipartFile file, LoginUser loginUser) throws IOException {
+    public StudentRoomCheck check(MultipartFile file, LoginUser loginUser, double longitude, double latitude) throws IOException {
+        if (longitude > 180.0D || longitude < -180.0D || latitude > 90.0D || latitude < -90.0D) {
+            throw new GpsException(longitude, latitude);
+        }
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
         StudentRoomCheck studentRoomCheck = new StudentRoomCheck();
         studentRoomCheck.setUser(user);
+        studentRoomCheck.setLongitude(longitude);
+        studentRoomCheck.setLatitude(latitude);
         studentRoomCheck.setCheckTime(new Date());
         StudentRoomCheck saved = studentRoomCheckDao.save(studentRoomCheck);
         String filenameExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
