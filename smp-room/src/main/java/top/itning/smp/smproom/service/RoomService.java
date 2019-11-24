@@ -45,4 +45,11 @@ public interface RoomService {
      * @return 打卡信息
      */
     List<StudentRoomCheck> checkAll(Date whereDay);
+
+    /**
+     * 计算应该打卡的学生数量（学生总数-请假生效中）
+     *
+     * @return 应打卡学生数量
+     */
+    long countShouldRoomCheck();
 }

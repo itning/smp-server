@@ -22,4 +22,12 @@ public interface InfoClient {
      */
     @GetMapping("/internal/user/{username}")
     Optional<User> getUserInfoByUserName(@PathVariable String username);
+
+    /**
+     * 计算学生人数
+     *
+     * @return 学生数量
+     */
+    @GetMapping("/internal/student_user/count")
+    long countStudent();
 }

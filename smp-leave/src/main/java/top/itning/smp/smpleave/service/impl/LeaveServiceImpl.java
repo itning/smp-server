@@ -19,6 +19,7 @@ import top.itning.smp.smpleave.dto.LeaveDTO;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.LeaveReason;
+import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.entity.User;
 import top.itning.smp.smpleave.exception.NullFiledException;
 import top.itning.smp.smpleave.exception.UnexpectedException;
@@ -155,6 +156,20 @@ public class LeaveServiceImpl implements LeaveService {
         Leave leave = leaveDao.findById(leaveId).orElseThrow(() -> new NullFiledException("请假ID不存在", HttpStatus.BAD_REQUEST));
         leave.setStatus(status);
         leaveDao.save(leave);
+    }
+
+    @Override
+    public long countInEffectLeaves() {
+        return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
+            list.add(cb.or(
+                    cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
+                    cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
+            list.add(cb.equal(root.get("status"), true));
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        });
     }
 
     /**

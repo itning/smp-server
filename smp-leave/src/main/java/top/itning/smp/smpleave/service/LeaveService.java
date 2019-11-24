@@ -57,4 +57,11 @@ public interface LeaveService {
      * @param status  状态
      */
     void leaveCheckStatusChange(String leaveId, boolean status);
+
+    /**
+     * 获取正在生效的请假信息数量
+     *
+     * @return 正在生效的请假信息数量
+     */
+    long countInEffectLeaves();
 }

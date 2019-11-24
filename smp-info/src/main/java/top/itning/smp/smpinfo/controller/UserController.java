@@ -117,4 +117,14 @@ public class UserController {
     public StudentUserDTO getStudentUserDtoFromUserName(@PathVariable String username) {
         return userService.getStudentUserInfoByUserName(username);
     }
+
+    /**
+     * 计算学生人数
+     *
+     * @return 学生数量
+     */
+    @GetMapping("/internal/student_user/count")
+    public long countStudent() {
+        return userService.countStudent();
+    }
 }

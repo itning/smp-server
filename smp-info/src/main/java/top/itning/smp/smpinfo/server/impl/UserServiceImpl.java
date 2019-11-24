@@ -295,6 +295,11 @@ public class UserServiceImpl implements UserService {
         return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
     }
 
+    @Override
+    public long countStudent() {
+        return studentUserDao.count();
+    }
+
     /**
      * 检查值
      */

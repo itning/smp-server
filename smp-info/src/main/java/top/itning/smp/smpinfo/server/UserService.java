@@ -67,4 +67,11 @@ public interface UserService {
      * @return 用户信息
      */
     StudentUserDTO getStudentUserInfoByUserName(String username);
+
+    /**
+     * 计算学生数量
+     *
+     * @return 学生数量
+     */
+    long countStudent();
 }

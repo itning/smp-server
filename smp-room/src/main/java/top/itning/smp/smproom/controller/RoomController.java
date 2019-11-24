@@ -13,6 +13,7 @@ import top.itning.smp.smproom.entity.RestModel;
 import top.itning.smp.smproom.security.LoginUser;
 import top.itning.smp.smproom.security.MustCounselorLogin;
 import top.itning.smp.smproom.security.MustStudentLogin;
+import top.itning.smp.smproom.service.AppMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,10 +29,12 @@ import java.util.Date;
 @RestController
 public class RoomController {
     private final RoomService roomService;
+    private final AppMetaDataService appMetaDataService;
 
     @Autowired
-    public RoomController(RoomService roomService) {
+    public RoomController(RoomService roomService, AppMetaDataService appMetaDataService) {
         this.roomService = roomService;
+        this.appMetaDataService = appMetaDataService;
     }
 
     @InitBinder
@@ -61,7 +64,48 @@ public class RoomController {
      */
     @GetMapping("/allow_check")
     public ResponseEntity<?> allowCheck(@MustStudentLogin LoginUser loginUser) {
-        return RestModel.ok(true);
+        return RestModel.ok(appMetaDataService.isNowCanRoomCheck());
+    }
+
+    /**
+     * 获取学生寝室允许打卡时间
+     *
+     * @return ResponseEntity
+     */
+    @GetMapping("/check_date")
+    public ResponseEntity<?> getCheckDate(@MustCounselorLogin LoginUser loginUser) {
+        return RestModel.ok(appMetaDataService.getStudentCheckDate());
+    }
+
+    /**
+     * 修改学生寝室允许打卡时间
+     *
+     * @return ResponseEntity
+     */
+    @PostMapping("/check_date")
+    public ResponseEntity<?> getCheckDate(@MustCounselorLogin LoginUser loginUser,
+                                          String dateString) {
+        return RestModel.created(appMetaDataService.upStudentCheckDate(dateString));
+    }
+
+    /**
+     * 获取允许打卡GPS坐标范围信息
+     *
+     * @return ResponseEntity
+     */
+    @GetMapping("/gps_range")
+    public ResponseEntity<?> getGpsRangeInfo(@MustCounselorLogin LoginUser loginUser) {
+        return RestModel.ok(appMetaDataService.getGpsRange());
+    }
+
+    /**
+     * 修改允许打卡GPS坐标范围信息
+     *
+     * @return ResponseEntity
+     */
+    @PostMapping("/gps_range")
+    public ResponseEntity<?> upGpsRangeInfo(@MustCounselorLogin LoginUser loginUser, String gps) {
+        return RestModel.created(appMetaDataService.upGpsRange(gps));
     }
 
     /**
@@ -81,6 +125,12 @@ public class RoomController {
         return RestModel.created(roomService.check(file, loginUser, longitude, latitude));
     }
 
+    /**
+     * 获取学生某天打卡信息
+     *
+     * @param whereDay 哪天 默认今天
+     * @return ResponseEntity
+     */
     @GetMapping("/check_all")
     public ResponseEntity<?> checkAll(@MustCounselorLogin LoginUser loginUser,
                                       Date whereDay) {
@@ -88,5 +138,15 @@ public class RoomController {
             whereDay = new Date();
         }
         return RestModel.ok(roomService.checkAll(whereDay));
+    }
+
+    /**
+     * 计算应该打卡的学生数量（学生总数-请假生效中）
+     *
+     * @return 应打卡学生数量
+     */
+    @GetMapping("/countShouldRoomCheck")
+    public ResponseEntity<?> countShouldRoomCheck(@MustCounselorLogin LoginUser loginUser) {
+        return RestModel.ok(roomService.countShouldRoomCheck());
     }
 }

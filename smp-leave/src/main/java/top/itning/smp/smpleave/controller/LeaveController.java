@@ -134,4 +134,14 @@ public class LeaveController {
                                     SearchDTO searchDTO) {
         return RestModel.ok(leaveService.search(searchDTO, pageable, true));
     }
+
+    /**
+     * 获取正在生效的请假信息数量
+     *
+     * @return 正在生效的请假信息数量
+     */
+    @GetMapping("/internal/leaves/inEffect/count")
+    public long inEffectLeaves() {
+        return leaveService.countInEffectLeaves();
+    }
 }

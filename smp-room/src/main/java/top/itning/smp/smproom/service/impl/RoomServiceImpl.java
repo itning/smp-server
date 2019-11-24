@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smproom.client.InfoClient;
+import top.itning.smp.smproom.client.LeaveClient;
 import top.itning.smp.smproom.config.CustomProperties;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
@@ -38,12 +39,14 @@ public class RoomServiceImpl implements RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomServiceImpl.class);
     private final StudentRoomCheckDao studentRoomCheckDao;
     private final InfoClient infoClient;
+    private final LeaveClient leaveClient;
     private final CustomProperties customProperties;
 
     @Autowired
-    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, CustomProperties customProperties) {
+    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties) {
         this.studentRoomCheckDao = studentRoomCheckDao;
         this.infoClient = infoClient;
+        this.leaveClient = leaveClient;
         this.customProperties = customProperties;
     }
 
@@ -85,6 +88,14 @@ public class RoomServiceImpl implements RoomService {
     public List<StudentRoomCheck> checkAll(Date whereDay) {
         Tuple2<Date, Date> dateRange = getDateRange(whereDay);
         return studentRoomCheckDao.findAllByCheckTimeBetweenOrderByCheckTimeDesc(dateRange.getT1(), dateRange.getT2());
+    }
+
+    @Override
+    public long countShouldRoomCheck() {
+        long countStudent = infoClient.countStudent();
+        long countInEffectLeaves = leaveClient.countInEffectLeaves();
+        logger.debug("countStudent {} countInEffectLeaves {}", countStudent, countInEffectLeaves);
+        return countStudent - countInEffectLeaves;
     }
 
     private Tuple2<Date, Date> getDateRange(Date startDate) {
