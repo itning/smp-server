@@ -10,6 +10,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
+import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.entity.RestModel;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.security.MustCounselorLogin;
@@ -143,5 +144,17 @@ public class LeaveController {
     @GetMapping("/internal/leaves/inEffect/count")
     public long inEffectLeaves() {
         return leaveService.countInEffectLeaves();
+    }
+
+    /**
+     * 学生今天是否请假了
+     *
+     * @param userName  学生
+     * @param leaveType 请假类型 只能传课假或寝室假，默认包括全部假
+     * @return 今天请假了返回<code>true</code>
+     */
+    @GetMapping("/internal/isLeave")
+    public boolean isLeave(@RequestParam("userName") String userName, @RequestParam("leaveType") LeaveType leaveType) {
+        return leaveService.isUserLeaveToday(userName, leaveType);
     }
 }

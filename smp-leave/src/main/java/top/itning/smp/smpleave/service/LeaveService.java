@@ -6,6 +6,7 @@ import top.itning.smp.smpleave.dto.LeaveDTO;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.LeaveReason;
+import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.security.LoginUser;
 
 /**
@@ -64,4 +65,13 @@ public interface LeaveService {
      * @return 正在生效的请假信息数量
      */
     long countInEffectLeaves();
+
+    /**
+     * 学生今天是否请假了
+     *
+     * @param userName  学生
+     * @param leaveType 请假类型 只能传课假或寝室假，默认包括全部假
+     * @return 今天请假了返回<code>true</code>
+     */
+    boolean isUserLeaveToday(String userName, LeaveType leaveType);
 }

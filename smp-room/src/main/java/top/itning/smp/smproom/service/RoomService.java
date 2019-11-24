@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.security.LoginUser;
+import top.itning.utils.tuple.Tuple2;
 
 import java.io.IOException;
 import java.util.Date;
@@ -47,9 +48,9 @@ public interface RoomService {
     List<StudentRoomCheck> checkAll(Date whereDay);
 
     /**
-     * 计算应该打卡的学生数量（学生总数-请假生效中）
+     * 计算应该打卡的学生数量
      *
-     * @return 应打卡学生数量
+     * @return 应打卡学生数量 T1 学生总数 T2 请假生效中人数
      */
-    long countShouldRoomCheck();
+    Tuple2<Long, Long> countShouldRoomCheck();
 }

@@ -172,6 +172,22 @@ public class LeaveServiceImpl implements LeaveService {
         });
     }
 
+    @Override
+    public boolean isUserLeaveToday(String userName, LeaveType leaveType) {
+        return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
+            list.add(cb.equal(root.get("status"), true));
+            list.add(cb.or(
+                    cb.equal(root.get("leaveType"), leaveType),
+                    cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
+            Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
+            list.add(cb.equal(userJoin.get("username"), userName));
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        }) != 0;
+    }
+
     /**
      * 日期区间查询
      *

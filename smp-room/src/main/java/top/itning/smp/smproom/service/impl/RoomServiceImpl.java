@@ -12,6 +12,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smproom.client.InfoClient;
 import top.itning.smp.smproom.client.LeaveClient;
+import top.itning.smp.smproom.client.entity.LeaveType;
 import top.itning.smp.smproom.config.CustomProperties;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
@@ -21,7 +22,9 @@ import top.itning.smp.smproom.exception.IllegalCheckException;
 import top.itning.smp.smproom.exception.SavedException;
 import top.itning.smp.smproom.exception.UserNameDoesNotExistException;
 import top.itning.smp.smproom.security.LoginUser;
+import top.itning.smp.smproom.service.AppMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
+import top.itning.smp.smproom.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
 import java.io.File;
@@ -41,13 +44,15 @@ public class RoomServiceImpl implements RoomService {
     private final InfoClient infoClient;
     private final LeaveClient leaveClient;
     private final CustomProperties customProperties;
+    private final AppMetaDataService appMetaDataService;
 
     @Autowired
-    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties) {
+    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, AppMetaDataService appMetaDataService) {
         this.studentRoomCheckDao = studentRoomCheckDao;
         this.infoClient = infoClient;
         this.leaveClient = leaveClient;
         this.customProperties = customProperties;
+        this.appMetaDataService = appMetaDataService;
     }
 
     @Override
@@ -58,13 +63,20 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public StudentRoomCheck check(MultipartFile file, LoginUser loginUser, double longitude, double latitude) throws IOException {
+        // 修正坐标
         if (longitude > 180.0D || longitude < -180.0D || latitude > 90.0D || latitude < -90.0D) {
             throw new GpsException(longitude, latitude);
         }
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
+        if (leaveClient.isLeave(user.getUsername(), LeaveType.ROOM_LEAVE)) {
+            throw new IllegalCheckException("您今天已经请假了，无需打卡");
+        }
         Tuple2<Date, Date> dateRange = getDateRange(new Date());
         if (studentRoomCheckDao.existsByUserAndCheckTimeBetween(user, dateRange.getT1(), dateRange.getT2())) {
             throw new IllegalCheckException("您今天已经打过卡了，不能重复打卡");
+        }
+        if (!GpsUtils.isPtInPoly(longitude, latitude, appMetaDataService.getGpsRange())) {
+            throw new IllegalCheckException("打卡所在位置不在辅导员指定的区域内");
         }
         StudentRoomCheck studentRoomCheck = new StudentRoomCheck();
         studentRoomCheck.setUser(user);
@@ -91,11 +103,11 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public long countShouldRoomCheck() {
+    public Tuple2<Long, Long> countShouldRoomCheck() {
         long countStudent = infoClient.countStudent();
         long countInEffectLeaves = leaveClient.countInEffectLeaves();
         logger.debug("countStudent {} countInEffectLeaves {}", countStudent, countInEffectLeaves);
-        return countStudent - countInEffectLeaves;
+        return new Tuple2<>(countStudent, countInEffectLeaves);
     }
 
     private Tuple2<Date, Date> getDateRange(Date startDate) {
