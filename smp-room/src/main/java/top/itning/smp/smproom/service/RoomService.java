@@ -7,6 +7,8 @@ import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.security.LoginUser;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -32,4 +34,15 @@ public interface RoomService {
      * @throws IOException 保存文件可能出现的异常
      */
     StudentRoomCheck check(MultipartFile file, LoginUser loginUser, double longitude, double latitude) throws IOException;
+
+    /**
+     * 获取学生某天打卡信息
+     * 例如输入 2019/11/23 14:32:32:235
+     * 则范围为
+     * 2019/11/23 00:00:00:000 - 2019/11/24 00:00:00:000
+     *
+     * @param whereDay 哪天
+     * @return 打卡信息
+     */
+    List<StudentRoomCheck> checkAll(Date whereDay);
 }

@@ -1,21 +1,24 @@
 package top.itning.smp.smproom.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smproom.entity.RestModel;
 import top.itning.smp.smproom.security.LoginUser;
+import top.itning.smp.smproom.security.MustCounselorLogin;
 import top.itning.smp.smproom.security.MustStudentLogin;
 import top.itning.smp.smproom.service.RoomService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 寝室控制器
@@ -29,6 +32,13 @@ public class RoomController {
     @Autowired
     public RoomController(RoomService roomService) {
         this.roomService = roomService;
+    }
+
+    @InitBinder
+    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) {
+        binder.registerCustomEditor(
+                Date.class,
+                new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), true));
     }
 
     /**
@@ -69,5 +79,14 @@ public class RoomController {
                                    @RequestParam("longitude") double longitude,
                                    @RequestParam("latitude") double latitude) throws IOException {
         return RestModel.created(roomService.check(file, loginUser, longitude, latitude));
+    }
+
+    @GetMapping("/check_all")
+    public ResponseEntity<?> checkAll(@MustCounselorLogin LoginUser loginUser,
+                                      Date whereDay) {
+        if (whereDay == null) {
+            whereDay = new Date();
+        }
+        return RestModel.ok(roomService.checkAll(whereDay));
     }
 }
