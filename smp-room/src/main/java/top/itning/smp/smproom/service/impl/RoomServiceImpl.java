@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smproom.client.InfoClient;
+import top.itning.smp.smproom.config.CustomProperties;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.entity.User;
@@ -37,11 +38,13 @@ public class RoomServiceImpl implements RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomServiceImpl.class);
     private final StudentRoomCheckDao studentRoomCheckDao;
     private final InfoClient infoClient;
+    private final CustomProperties customProperties;
 
     @Autowired
-    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient) {
+    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, CustomProperties customProperties) {
         this.studentRoomCheckDao = studentRoomCheckDao;
         this.infoClient = infoClient;
+        this.customProperties = customProperties;
     }
 
     @Override
@@ -74,7 +77,7 @@ public class RoomServiceImpl implements RoomService {
         if (!StringUtils.hasText(saved.getId())) {
             throw new SavedException("数据库存储ID为空", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        file.transferTo(new File("C:\\Users\\wangn\\Desktop\\" + saved.getId() + "." + filenameExtension));
+        file.transferTo(new File(customProperties.getResourceLocation() + saved.getId() + "." + filenameExtension));
         return saved;
     }
 
