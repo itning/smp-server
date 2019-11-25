@@ -50,7 +50,8 @@ public interface RoomService {
     /**
      * 计算应该打卡的学生数量
      *
+     * @param date 日期
      * @return 应打卡学生数量 T1 学生总数 T2 请假生效中人数
      */
-    Tuple2<Long, Long> countShouldRoomCheck();
+    Tuple2<Long, Long> countShouldRoomCheck(String date);
 }

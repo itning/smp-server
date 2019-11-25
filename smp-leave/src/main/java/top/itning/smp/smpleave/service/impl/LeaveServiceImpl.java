@@ -110,10 +110,17 @@ public class LeaveServiceImpl implements LeaveService {
             if (Objects.nonNull(searchDTO.getEffective())) {
                 if (searchDTO.getEffective()) {
                     logger.debug("search < end time");
-                    dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                    calendar.set(Calendar.MINUTE, 0);
+                    calendar.set(Calendar.SECOND, 0);
+                    calendar.set(Calendar.MILLISECOND, 0);
+                    dateIntervalQuery(list, cb, root, "endTime", calendar.getTime(), null);
                 } else {
                     logger.debug("search > end time");
-                    dateIntervalQuery(list, cb, root, "endTime", null, new Date());
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DATE, 1);
+                    dateIntervalQuery(list, cb, root, "endTime", null, calendar.getTime());
                 }
             }
 
@@ -159,10 +166,24 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public long countInEffectLeaves() {
+    public long countInEffectLeaves(Date date) {
         return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
-            dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
+            Date searchDate = date;
+            if (searchDate == null) {
+                searchDate = new Date();
+            }
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(searchDate);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            Date endTime = calendar.getTime();
+            calendar.add(Calendar.DATE, 1);
+            Date startTime = calendar.getTime();
+            dateIntervalQuery(list, cb, root, "startTime", null, startTime);
+            dateIntervalQuery(list, cb, root, "endTime", endTime, null);
             list.add(cb.or(
                     cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
                     cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
@@ -176,7 +197,16 @@ public class LeaveServiceImpl implements LeaveService {
     public boolean isUserLeaveToday(String userName, LeaveType leaveType) {
         return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
-            dateIntervalQuery(list, cb, root, "endTime", new Date(), null);
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            Date endTime = calendar.getTime();
+            calendar.add(Calendar.DATE, 1);
+            Date startTime = calendar.getTime();
+            dateIntervalQuery(list, cb, root, "startTime", null, startTime);
+            dateIntervalQuery(list, cb, root, "endTime", endTime, null);
             list.add(cb.equal(root.get("status"), true));
             list.add(cb.or(
                     cb.equal(root.get("leaveType"), leaveType),

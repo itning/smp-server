@@ -146,7 +146,8 @@ public class RoomController {
      * @return 应打卡学生数量
      */
     @GetMapping("/countShouldRoomCheck")
-    public ResponseEntity<?> countShouldRoomCheck(@MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(roomService.countShouldRoomCheck());
+    public ResponseEntity<?> countShouldRoomCheck(@MustCounselorLogin LoginUser loginUser,
+                                                  @RequestParam("date") String date) {
+        return RestModel.ok(roomService.countShouldRoomCheck(date));
     }
 }

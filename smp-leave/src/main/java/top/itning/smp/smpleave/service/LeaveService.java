@@ -9,6 +9,8 @@ import top.itning.smp.smpleave.entity.LeaveReason;
 import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.security.LoginUser;
 
+import java.util.Date;
+
 /**
  * @author itning
  */
@@ -62,9 +64,10 @@ public interface LeaveService {
     /**
      * 获取正在生效的请假信息数量
      *
+     * @param date 目前日期
      * @return 正在生效的请假信息数量
      */
-    long countInEffectLeaves();
+    long countInEffectLeaves(Date date);
 
     /**
      * 学生今天是否请假了

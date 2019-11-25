@@ -15,10 +15,11 @@ public interface LeaveClient {
     /**
      * 获取正在生效的请假信息数量
      *
+     * @param date 哪天开始
      * @return 正在生效的请假信息数量
      */
     @GetMapping("/internal/leaves/inEffect/count")
-    long countInEffectLeaves();
+    long countInEffectLeaves(@RequestParam("date") String date);
 
     /**
      * 学生今天是否请假了

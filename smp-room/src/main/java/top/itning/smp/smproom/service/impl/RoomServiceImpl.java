@@ -103,9 +103,9 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Tuple2<Long, Long> countShouldRoomCheck() {
+    public Tuple2<Long, Long> countShouldRoomCheck(String date) {
         long countStudent = infoClient.countStudent();
-        long countInEffectLeaves = leaveClient.countInEffectLeaves();
+        long countInEffectLeaves = leaveClient.countInEffectLeaves(date);
         logger.debug("countStudent {} countInEffectLeaves {}", countStudent, countInEffectLeaves);
         return new Tuple2<>(countStudent, countInEffectLeaves);
     }
