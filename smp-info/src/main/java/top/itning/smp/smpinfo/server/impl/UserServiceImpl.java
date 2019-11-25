@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dao.ApartmentDao;
+import top.itning.smp.smpinfo.dao.RoleDao;
 import top.itning.smp.smpinfo.dao.StudentUserDao;
 import top.itning.smp.smpinfo.dao.UserDao;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
@@ -74,10 +75,48 @@ public class UserServiceImpl implements UserService {
 
     private final ApartmentDao apartmentDao;
 
-    public UserServiceImpl(UserDao userDao, StudentUserDao studentUserDao, ApartmentDao apartmentDao) {
+    public UserServiceImpl(UserDao userDao, StudentUserDao studentUserDao, ApartmentDao apartmentDao, RoleDao roleDao) {
         this.userDao = userDao;
         this.studentUserDao = studentUserDao;
         this.apartmentDao = apartmentDao;
+        checkAndInitRole(roleDao);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private void checkAndInitRole(RoleDao roleDao) {
+        if (roleDao.existsById("1")) {
+            Role role = roleDao.findById("1").get();
+            if (!"学生".equals(role.getName())) {
+                logger.error("Id 1 Role Not Student And Is {}", role.getName());
+            }
+        } else {
+            Role role = new Role();
+            role.setId("1");
+            role.setName("学生");
+            roleDao.saveAndFlush(role);
+        }
+        if (roleDao.existsById("2")) {
+            Role role = roleDao.findById("2").get();
+            if (!"教师".equals(role.getName())) {
+                logger.error("Id 2 Role Not Teacher And Is {}", role.getName());
+            }
+        } else {
+            Role role = new Role();
+            role.setId("2");
+            role.setName("教师");
+            roleDao.saveAndFlush(role);
+        }
+        if (roleDao.existsById("3")) {
+            Role role = roleDao.findById("3").get();
+            if (!"辅导员".equals(role.getName())) {
+                logger.error("Id 3 Role Not Counselor And Is {}", role.getName());
+            }
+        } else {
+            Role role = new Role();
+            role.setId("3");
+            role.setName("辅导员");
+            roleDao.saveAndFlush(role);
+        }
     }
 
     @Override
