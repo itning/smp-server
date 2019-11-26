@@ -17,6 +17,7 @@ import top.itning.smp.smproom.service.AppMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -149,5 +150,12 @@ public class RoomController {
     public ResponseEntity<?> countShouldRoomCheck(@MustCounselorLogin LoginUser loginUser,
                                                   @RequestParam("date") String date) {
         return RestModel.ok(roomService.countShouldRoomCheck(date));
+    }
+
+    @GetMapping("/export_room/{whereDay}")
+    public void exportRoomInfo(@PathVariable("whereDay") Date whereDay,
+                               @MustCounselorLogin LoginUser loginUser,
+                               HttpServletResponse response) throws IOException {
+        roomService.export(response.getOutputStream(), whereDay);
     }
 }

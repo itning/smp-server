@@ -8,6 +8,7 @@ import top.itning.smp.smpinfo.dto.UpFileDTO;
 import top.itning.smp.smpinfo.entity.User;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author itning
@@ -74,4 +75,11 @@ public interface UserService {
      * @return 学生数量
      */
     long countStudent();
+
+    /**
+     * 获取所有用户
+     *
+     * @return 所有用户
+     */
+    List<StudentUserDTO> getAllUser();
 }

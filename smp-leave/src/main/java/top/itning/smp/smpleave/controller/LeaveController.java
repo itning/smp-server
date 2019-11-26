@@ -8,6 +8,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
+import top.itning.smp.smpleave.dto.LeaveDTO;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.LeaveType;
@@ -21,6 +22,7 @@ import top.itning.smp.smpleave.service.LeaveService;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -156,5 +158,16 @@ public class LeaveController {
     @GetMapping("/internal/isLeave")
     public boolean isLeave(@RequestParam("userName") String userName, @RequestParam("leaveType") LeaveType leaveType) {
         return leaveService.isUserLeaveToday(userName, leaveType);
+    }
+
+    /**
+     * 获取请假信息
+     *
+     * @param whereDay 哪天
+     * @return 所有请假信息
+     */
+    @GetMapping("/internal/leaves")
+    public List<LeaveDTO> getAllLeave(@RequestParam("whereDay") Date whereDay) {
+        return leaveService.getLeaves(whereDay);
     }
 }

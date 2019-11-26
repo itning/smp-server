@@ -4,7 +4,10 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import top.itning.smp.smproom.client.entity.LeaveDTO;
 import top.itning.smp.smproom.client.entity.LeaveType;
+
+import java.util.List;
 
 /**
  * @author itning
@@ -30,4 +33,13 @@ public interface LeaveClient {
      */
     @GetMapping("/internal/isLeave")
     boolean isLeave(@RequestParam("userName") String userName, @RequestParam("leaveType") LeaveType leaveType);
+
+    /**
+     * 获取请假信息
+     *
+     * @param whereDay 哪天
+     * @return 所有请假信息
+     */
+    @GetMapping("/internal/leaves")
+    List<LeaveDTO> getAllLeave(@RequestParam("whereDay") String whereDay);
 }

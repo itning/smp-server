@@ -8,6 +8,7 @@ import top.itning.smp.smproom.security.LoginUser;
 import top.itning.utils.tuple.Tuple2;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -54,4 +55,13 @@ public interface RoomService {
      * @return 应打卡学生数量 T1 学生总数 T2 请假生效中人数
      */
     Tuple2<Long, Long> countShouldRoomCheck(String date);
+
+    /**
+     * 导出Excel
+     *
+     * @param outputStream OutputStream
+     * @param whereDay   日期
+     * @throws IOException 导出异常
+     */
+    void export(OutputStream outputStream, Date whereDay) throws IOException;
 }

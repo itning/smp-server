@@ -10,6 +10,7 @@ import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.security.LoginUser;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -77,4 +78,12 @@ public interface LeaveService {
      * @return 今天请假了返回<code>true</code>
      */
     boolean isUserLeaveToday(String userName, LeaveType leaveType);
+
+    /**
+     * 获取所有请假信息
+     *
+     * @param whereDay 哪天
+     * @return 所有请假信息
+     */
+    List<LeaveDTO> getLeaves(Date whereDay);
 }

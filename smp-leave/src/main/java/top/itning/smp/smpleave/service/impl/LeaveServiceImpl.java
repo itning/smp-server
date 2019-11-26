@@ -26,6 +26,7 @@ import top.itning.smp.smpleave.exception.UnexpectedException;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
 import top.itning.smp.smpleave.util.OrikaUtils;
+import top.itning.utils.tuple.Tuple2;
 
 import javax.persistence.criteria.*;
 import java.time.LocalDate;
@@ -175,17 +176,9 @@ public class LeaveServiceImpl implements LeaveService {
             if (searchDate == null) {
                 searchDate = new Date();
             }
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(searchDate);
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            Date endTime = calendar.getTime();
-            calendar.add(Calendar.DATE, 1);
-            Date startTime = calendar.getTime();
-            dateIntervalQuery(list, cb, root, "startTime", null, startTime);
-            dateIntervalQuery(list, cb, root, "endTime", endTime, null);
+            Tuple2<Date, Date> dateRange = getDateRange(searchDate);
+            dateIntervalQuery(list, cb, root, "startTime", null, dateRange.getT2());
+            dateIntervalQuery(list, cb, root, "endTime", dateRange.getT1(), null);
             list.add(cb.or(
                     cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
                     cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
@@ -220,6 +213,31 @@ public class LeaveServiceImpl implements LeaveService {
         }) != 0;
     }
 
+    @Override
+    public List<LeaveDTO> getLeaves(Date whereDay) {
+        return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            Tuple2<Date, Date> dateRange = getDateRange(whereDay);
+            dateIntervalQuery(list, cb, root, "startTime", null, dateRange.getT2());
+            dateIntervalQuery(list, cb, root, "endTime", dateRange.getT1(), null);
+            list.add(cb.or(
+                    cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
+                    cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
+            list.add(cb.equal(root.get("status"), true));
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        })
+                .stream()
+                .map(leave -> {
+                    StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
+                    LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
+                    leaveDTO.setStudentUser(studentUser);
+                    leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
+                    return leaveDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
     /**
      * 日期区间查询
      *
@@ -245,5 +263,20 @@ public class LeaveServiceImpl implements LeaveService {
                 list.add(cb.between(root.get(field), MIN_DATE, endDate));
             }
         }
+    }
+
+    private Tuple2<Date, Date> getDateRange(Date startDate) {
+        Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(startDate);
+        cal1.set(Calendar.HOUR_OF_DAY, 0);
+        cal1.set(Calendar.MINUTE, 0);
+        cal1.set(Calendar.SECOND, 0);
+        cal1.set(Calendar.MILLISECOND, 0);
+        Date date1 = cal1.getTime();
+
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date1);
+        cal2.add(Calendar.DATE, 1);
+        return new Tuple2<>(date1, cal2.getTime());
     }
 }

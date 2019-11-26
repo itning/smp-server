@@ -4,8 +4,10 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import top.itning.smp.smproom.client.entity.StudentUserDTO;
 import top.itning.smp.smproom.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,4 +32,12 @@ public interface InfoClient {
      */
     @GetMapping("/internal/student_user/count")
     long countStudent();
+
+    /**
+     * 获取所有学生信息
+     *
+     * @return 学生信息
+     */
+    @GetMapping("/internal/users")
+    List<StudentUserDTO> getAllUser();
 }

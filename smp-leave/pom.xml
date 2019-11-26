@@ -57,6 +57,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.itning</groupId>
+            <artifactId>utils-spring-boot-starter</artifactId>
+            <version>1.0.1-RELEASE</version>
+        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>

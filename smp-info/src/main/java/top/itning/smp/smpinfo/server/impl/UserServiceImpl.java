@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author itning
@@ -337,6 +338,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public long countStudent() {
         return studentUserDao.count();
+    }
+
+    @Override
+    public List<StudentUserDTO> getAllUser() {
+        return studentUserDao.findAll().stream()
+                .map(studentUser -> {
+                    User user = userDao.findById(studentUser.getId()).orElse(null);
+                    return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
+                })
+                .collect(Collectors.toList());
     }
 
     /**

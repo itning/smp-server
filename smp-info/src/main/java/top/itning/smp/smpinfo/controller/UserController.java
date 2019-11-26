@@ -14,6 +14,7 @@ import top.itning.smp.smpinfo.security.MustCounselorLogin;
 import top.itning.smp.smpinfo.server.UserService;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 用户控制层
@@ -126,5 +127,15 @@ public class UserController {
     @GetMapping("/internal/student_user/count")
     public long countStudent() {
         return userService.countStudent();
+    }
+
+    /**
+     * 获取所有学生信息
+     *
+     * @return 学生信息
+     */
+    @GetMapping("/internal/users")
+    public List<StudentUserDTO> getAllUser() {
+        return userService.getAllUser();
     }
 }
