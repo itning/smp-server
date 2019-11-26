@@ -28,8 +28,9 @@ import top.itning.smp.smpleave.service.LeaveService;
 import top.itning.smp.smpleave.util.OrikaUtils;
 
 import javax.persistence.criteria.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,8 @@ import java.util.stream.Collectors;
 @Transactional(rollbackFor = Exception.class)
 public class LeaveServiceImpl implements LeaveService {
     private static final Logger logger = LoggerFactory.getLogger(LeaveServiceImpl.class);
-
+    private static final Date MIN_DATE = Date.from(LocalDate.of(2001, 1, 1).atStartOfDay().atZone(ZoneId.of("Asia/Shanghai")).toInstant());
+    private static final Date MAX_DATE = Date.from(LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Shanghai")).toInstant());
     private final LeaveDao leaveDao;
     private final InfoClient infoClient;
     private final LeaveReasonDao leaveReasonDao;
@@ -234,22 +236,13 @@ public class LeaveServiceImpl implements LeaveService {
             logger.debug("dateIntervalQuery::已获取到开始和结束时间");
             list.add(cb.between(root.get(field), startDate, endDate));
         } else {
-            Date minDate = null;
-            Date maxDate = null;
-            try {
-                minDate = new SimpleDateFormat("yyyy-MM-dd").parse("2001-01-01");
-                maxDate = new SimpleDateFormat("yyyy-MM-dd").parse("9999-12-31");
-            } catch (ParseException e) {
-                //不可能的异常
-                logger.error("dateIntervalQuery::日期转换出现问题?" + e.getMessage());
-            }
             //只有开始时间
             if (startDate != null) {
                 logger.debug("dateIntervalQuery::已获取到开始时间");
-                list.add(cb.between(root.get(field), startDate, maxDate));
+                list.add(cb.between(root.get(field), startDate, MAX_DATE));
             } else {//只有结束时间
                 logger.debug("dateIntervalQuery::已获取到结束时间");
-                list.add(cb.between(root.get(field), minDate, endDate));
+                list.add(cb.between(root.get(field), MIN_DATE, endDate));
             }
         }
     }

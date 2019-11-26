@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class AppMetaDataServiceImpl implements AppMetaDataService {
-    private static final ThreadLocal<SimpleDateFormat> simpleDateFormatThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("HH:mm"));
+    private static final ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("HH:mm"));
     private final AppMetaDataDao appMetaDataDao;
 
     @Autowired
@@ -58,7 +58,7 @@ public class AppMetaDataServiceImpl implements AppMetaDataService {
     public Date getStudentCheckDate() {
         AppMetaData appMetaData = appMetaDataDao.findById(AppMetaData.KEY_ROOM_CHECK_TIME).orElseThrow(() -> new AppMetaException("归寝时间不存在", HttpStatus.NOT_FOUND));
         try {
-            return simpleDateFormatThreadLocal.get().parse(appMetaData.getValue());
+            return SIMPLE_DATE_FORMAT_THREAD_LOCAL.get().parse(appMetaData.getValue());
         } catch (ParseException e) {
             return null;
         }
