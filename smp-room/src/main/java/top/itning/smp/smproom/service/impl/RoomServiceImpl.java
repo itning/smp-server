@@ -1,7 +1,6 @@
 package top.itning.smp.smproom.service.impl;
 
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ import top.itning.smp.smproom.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -126,6 +126,8 @@ public class RoomServiceImpl implements RoomService {
         XSSFWorkbook sheets = new XSSFWorkbook();
         XSSFSheet sheet = sheets.createSheet();
         XSSFRow headerRow = sheet.createRow(0);
+        CreationHelper helper = sheets.getCreationHelper();
+        Drawing drawing = sheet.createDrawingPatriarch();
         initExportHeader(headerRow);
         Tuple2<Date, Date> dateRange = getDateRange(whereDay);
         // 所有学生
@@ -161,7 +163,7 @@ public class RoomServiceImpl implements RoomService {
         // 最后一行变量
         int lastRowNum = studentRoomCheckList.size() + 1;
         // 添加打卡同学信息
-        addRoomCheckInfo(sheet, studentRoomCheckList);
+        addRoomCheckInfo(sheets, helper, drawing, sheet, studentRoomCheckList);
         // 添加请假同学信息
         addLeaveInfo(sheet, allUser, allLeave, yellowBackColorCellStyle, lastRowNum);
         // 更新最后一行变量
@@ -171,6 +173,14 @@ public class RoomServiceImpl implements RoomService {
         sheets.write(outputStream);
     }
 
+    /**
+     * 添加未打卡同学信息
+     *
+     * @param sheet                 工作表
+     * @param unCheckList           未打卡同学信息集合
+     * @param redBackColorCellStyle 背景颜色
+     * @param lastRowNum            行号
+     */
     private void addUnCheckInfo(XSSFSheet sheet, List<StudentUserDTO> unCheckList, XSSFCellStyle redBackColorCellStyle, int lastRowNum) {
         for (int i = 0; i < unCheckList.size(); i++) {
             XSSFRow row = sheet.createRow(lastRowNum + i);
@@ -202,6 +212,15 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
+    /**
+     * 添加请假学生信息
+     *
+     * @param sheet                    工作表
+     * @param allUser                  所有学生集合
+     * @param allLeave                 请假学生集合
+     * @param yellowBackColorCellStyle 背景颜色
+     * @param lastRowNum               行号
+     */
     private void addLeaveInfo(XSSFSheet sheet, List<StudentUserDTO> allUser, List<LeaveDTO> allLeave, XSSFCellStyle yellowBackColorCellStyle, int lastRowNum) {
         for (int i = 0; i < allLeave.size(); i++) {
             XSSFRow row = sheet.createRow(lastRowNum + i);
@@ -235,7 +254,16 @@ public class RoomServiceImpl implements RoomService {
         }
     }
 
-    private void addRoomCheckInfo(XSSFSheet sheet, List<StudentRoomCheck> studentRoomCheckList) {
+    /**
+     * 添加打卡的学生信息
+     *
+     * @param workbook             工作簿
+     * @param helper               CreationHelper
+     * @param drawing              Drawing
+     * @param sheet                工作表
+     * @param studentRoomCheckList 打卡的学生信息集合
+     */
+    private void addRoomCheckInfo(XSSFWorkbook workbook, CreationHelper helper, Drawing drawing, XSSFSheet sheet, List<StudentRoomCheck> studentRoomCheckList) {
         for (int i = 1; i <= studentRoomCheckList.size(); i++) {
             XSSFRow row = sheet.createRow(i);
             StudentRoomCheck studentRoomCheck = studentRoomCheckList.get(i - 1);
@@ -247,9 +275,40 @@ public class RoomServiceImpl implements RoomService {
             row.createCell(5).setCellValue(studentRoomCheck.getUser().getTel());
             row.createCell(6).setCellValue(SIMPLE_DATE_FORMAT_THREAD_LOCAL.get().format(studentRoomCheck.getCheckTime()));
             row.createCell(7).setCellValue(studentRoomCheck.getLongitude() + "," + studentRoomCheck.getLatitude());
+            addPic(workbook, helper, drawing, 8, i, customProperties.getResourceLocation() + studentRoomCheck.getId() + ".jpg");
         }
     }
 
+    /**
+     * 添加图片
+     *
+     * @param workbook 工作簿
+     * @param helper   CreationHelper
+     * @param drawing  Drawing
+     * @param col      要插入的列
+     * @param row      要插入的行
+     * @param filePath 文件路径
+     */
+    private void addPic(XSSFWorkbook workbook, CreationHelper helper, Drawing drawing, int col, int row, String filePath) {
+        try (FileInputStream is = new FileInputStream(filePath)) {
+            int pictureIdx = workbook.addPicture(is, Workbook.PICTURE_TYPE_JPEG);
+            ClientAnchor anchor = helper.createClientAnchor();
+            // 图片插入坐标
+            anchor.setCol1(col);
+            anchor.setRow1(row);
+            // 插入图片
+            Picture pict = drawing.createPicture(anchor, pictureIdx);
+            pict.resize(1, 1);
+        } catch (Exception e) {
+            logger.warn("Add pic exception and file path: " + filePath, e);
+        }
+    }
+
+    /**
+     * 初始化表头
+     *
+     * @param headerRow 表头所在行
+     */
     private void initExportHeader(XSSFRow headerRow) {
         XSSFCell c0 = headerRow.createCell(0);
         c0.setCellValue("姓名");
@@ -271,6 +330,13 @@ public class RoomServiceImpl implements RoomService {
         c8.setCellValue("照片");
     }
 
+    /**
+     * 获取开始日期和开始日期的第二天
+     * 日期时间均为零点
+     *
+     * @param startDate 开始日期
+     * @return T1 开始日期 T2 第二天日期
+     */
     private Tuple2<Date, Date> getDateRange(Date startDate) {
         Calendar cal1 = Calendar.getInstance();
         cal1.setTime(startDate);
