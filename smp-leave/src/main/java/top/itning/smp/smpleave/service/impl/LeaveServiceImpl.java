@@ -21,17 +21,21 @@ import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.LeaveReason;
 import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.entity.User;
+import top.itning.smp.smpleave.exception.DateRangeException;
 import top.itning.smp.smpleave.exception.NullFiledException;
 import top.itning.smp.smpleave.exception.UnexpectedException;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
+import top.itning.smp.smpleave.util.DateUtils;
 import top.itning.smp.smpleave.util.OrikaUtils;
 import top.itning.utils.tuple.Tuple2;
 
 import javax.persistence.criteria.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,14 +72,46 @@ public class LeaveServiceImpl implements LeaveService {
 
     @Override
     public Leave newLeave(Leave leave, LoginUser loginUser) {
+        if (!ObjectUtils.allNotNull(leave.getStartTime(), leave.getEndTime(), leave.getReason(), leave.getLeaveType())) {
+            throw new NullFiledException("请假信息不能为空", HttpStatus.BAD_REQUEST);
+        }
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
             // 不应出现该异常，因为用户传参必然存在
             logger.error("user info is null,but system should not null");
             return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
         });
+
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.setTime(leave.getStartTime());
+        startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        startCalendar.set(Calendar.MINUTE, 0);
+        startCalendar.set(Calendar.SECOND, 0);
+        startCalendar.set(Calendar.MILLISECOND, 0);
+        leave.setStartTime(startCalendar.getTime());
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.setTime(leave.getEndTime());
+        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endCalendar.set(Calendar.MINUTE, 59);
+        endCalendar.set(Calendar.SECOND, 59);
+        endCalendar.set(Calendar.MILLISECOND, 999);
+        leave.setEndTime(endCalendar.getTime());
+
+        List<Leave> leaveList = leaveDao.findAllByUser(user);
+        if (!leaveList.isEmpty()) {
+            leaveList.forEach(dataBaseLeave -> {
+                // 请同样类型的假并且时间相同的拒绝申请
+                if (leave.getLeaveType() == dataBaseLeave.getLeaveType() && DateUtils.isDateCross(dataBaseLeave.getStartTime(), dataBaseLeave.getEndTime(), leave.getStartTime(), leave.getEndTime())) {
+                    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
+                    String start = LocalDateTime.ofInstant(dataBaseLeave.getStartTime().toInstant(), ZoneId.of("Asia/Shanghai")).format(dateTimeFormatter);
+                    String end = LocalDateTime.ofInstant(dataBaseLeave.getEndTime().toInstant(), ZoneId.of("Asia/Shanghai")).format(dateTimeFormatter);
+                    throw new DateRangeException(start + "至" + end + "您已经请过假了");
+                }
+            });
+        }
         leave.setId(null);
         leave.setUser(user);
-        leave.setStatus(false);
+        leave.setStatus(null);
+        leave.setLeaveReasonList(null);
         return leaveDao.save(leave);
     }
 

@@ -36,6 +36,14 @@ public interface LeaveDao extends JpaRepository<Leave, String>, JpaSpecification
     Page<Leave> findAllByUser(User user, Pageable pageable);
 
     /**
+     * 根据用户寻找请假信息
+     *
+     * @param user 用户
+     * @return 请假信息
+     */
+    List<Leave> findAllByUser(User user);
+
+    /**
      * 根据学号或姓名查询学生请假信息
      *
      * @param key    学号或姓名

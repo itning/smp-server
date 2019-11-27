@@ -115,11 +115,23 @@ public class LeaveController {
     /**
      * 新增请假信息
      *
-     * @param leave 请假信息
-     * @return ResponseEntity
+     * @param startTime 请假开始时间
+     * @param endTime   请假结束时间
+     * @param reason    原因
+     * @param leaveType 请假类型
+     * @return 请假信息
      */
     @PostMapping("/leave")
-    public ResponseEntity<?> newLeave(Leave leave, @MustStudentLogin LoginUser loginUser) {
+    public ResponseEntity<?> newLeave(@RequestParam Date startTime,
+                                      @RequestParam Date endTime,
+                                      @RequestParam String reason,
+                                      @RequestParam String leaveType,
+                                      @MustStudentLogin LoginUser loginUser) {
+        Leave leave = new Leave();
+        leave.setStartTime(startTime);
+        leave.setEndTime(endTime);
+        leave.setReason(reason);
+        leave.setLeaveType(LeaveType.valueOf(leaveType));
         return RestModel.created(leaveService.newLeave(leave, loginUser));
     }
 
