@@ -139,6 +139,19 @@ public class LeaveController {
     }
 
     /**
+     * 学生获取请假信息
+     *
+     * @param pageable 分页
+     * @return ResponseEntity
+     */
+    @GetMapping("/studentLeaves")
+    public ResponseEntity<?> getStudentLeaves(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
+                                                      Pageable pageable,
+                                              @MustStudentLogin LoginUser loginUser) {
+        return RestModel.ok(leaveService.getStudentLeaves(pageable, loginUser));
+    }
+
+    /**
      * 获取正在生效的请假信息数量
      *
      * @return 正在生效的请假信息数量

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import top.itning.smp.smpleave.entity.Leave;
 import top.itning.smp.smpleave.entity.LeaveType;
+import top.itning.smp.smpleave.entity.User;
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,15 @@ public interface LeaveDao extends JpaRepository<Leave, String>, JpaSpecification
      * @return 请假信息
      */
     Page<Leave> findAllByStatus(Boolean status, Pageable pageable);
+
+    /**
+     * 根据用户寻找请假信息
+     *
+     * @param user     用户
+     * @param pageable 分页
+     * @return 请假信息
+     */
+    Page<Leave> findAllByUser(User user, Pageable pageable);
 
     /**
      * 根据学号或姓名查询学生请假信息

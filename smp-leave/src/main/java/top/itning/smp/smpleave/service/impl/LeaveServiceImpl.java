@@ -238,6 +238,22 @@ public class LeaveServiceImpl implements LeaveService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Page<LeaveDTO> getStudentLeaves(Pageable pageable, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        return leaveDao.findAllByUser(user, pageable).map(leave -> {
+            StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
+            LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
+            leaveDTO.setStudentUser(studentUser);
+            leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
+            return leaveDTO;
+        });
+    }
+
     /**
      * 日期区间查询
      *

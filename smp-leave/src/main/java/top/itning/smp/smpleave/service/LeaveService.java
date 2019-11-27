@@ -86,4 +86,13 @@ public interface LeaveService {
      * @return 所有请假信息
      */
     List<LeaveDTO> getLeaves(Date whereDay);
+
+    /**
+     * 分页获取学生的请假信息
+     *
+     * @param pageable  分页
+     * @param loginUser 登录用户
+     * @return 请假信息
+     */
+    Page<LeaveDTO> getStudentLeaves(Pageable pageable, LoginUser loginUser);
 }
