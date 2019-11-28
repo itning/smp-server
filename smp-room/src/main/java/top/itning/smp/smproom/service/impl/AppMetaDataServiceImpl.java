@@ -23,6 +23,14 @@ import static top.itning.smp.smproom.util.DateUtils.localDateTime2Date;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class AppMetaDataServiceImpl implements AppMetaDataService {
+    /**
+     * 时间分割完数组大小
+     */
+    private static final int TIME_SEPARATOR_ARRAY_LENGTH = 2;
+    /**
+     * 时间分割符
+     */
+    private static final String TIME_SEPARATOR = ":";
     private final AppMetaDataDao appMetaDataDao;
 
     @Autowired
@@ -39,7 +47,7 @@ public class AppMetaDataServiceImpl implements AppMetaDataService {
         AppMetaData appMetaData = appMetaDataDao.findById(AppMetaData.KEY_ROOM_CHECK_TIME).orElseThrow(() -> new AppMetaException("归寝时间不存在", HttpStatus.NOT_FOUND));
         String dataValue = appMetaData.getValue();
         String[] strings = dataValue.split(":");
-        if (strings.length != 2) {
+        if (strings.length != TIME_SEPARATOR_ARRAY_LENGTH) {
             return false;
         }
         int ha = Integer.parseInt(strings[0]);
@@ -80,7 +88,7 @@ public class AppMetaDataServiceImpl implements AppMetaDataService {
 
     @Override
     public String upStudentCheckDate(String dateString) {
-        if (dateString.split(":").length != 2) {
+        if (dateString.split(TIME_SEPARATOR).length != TIME_SEPARATOR_ARRAY_LENGTH) {
             throw new AppMetaException("时间错误", HttpStatus.BAD_REQUEST);
         }
         AppMetaData appMetaData = appMetaDataDao.findById(AppMetaData.KEY_ROOM_CHECK_TIME).orElse(new AppMetaData(AppMetaData.KEY_ROOM_CHECK_TIME, dateString, null, null));

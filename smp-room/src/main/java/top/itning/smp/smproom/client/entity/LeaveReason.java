@@ -1,11 +1,8 @@
 package top.itning.smp.smproom.client.entity;
 
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import top.itning.smp.smproom.entity.User;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 

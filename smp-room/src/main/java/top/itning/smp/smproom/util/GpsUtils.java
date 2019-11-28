@@ -6,10 +6,16 @@ import java.util.List;
  * @author itning
  */
 public class GpsUtils {
+    private static final int MIN_SIZE = 3;
+    public static final double MAX_LONGITUDE = 180.0D;
+    public static final double MIN_LONGITUDE = -180.0D;
+    public static final double MAX_LATITUDE = 90.0D;
+    public static final double MIN_LATITUDE = -90.0D;
+
     public static boolean isPtInPoly(double lon, double lat, List<List<Double>> ps) {
         int iSum, iCount, iIndex;
         double dLon1, dLon2, dLat1, dLat2, dLon;
-        if (ps.size() < 3) {
+        if (ps.size() < MIN_SIZE) {
             return false;
         }
         iSum = 0;

@@ -50,6 +50,7 @@ public interface UserService {
      *
      * @param file 文件
      * @return 上传信息
+     * @throws IOException 存储异常
      */
     UpFileDTO upFile(MultipartFile file) throws IOException;
 

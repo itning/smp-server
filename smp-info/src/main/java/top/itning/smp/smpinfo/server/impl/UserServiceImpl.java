@@ -38,6 +38,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static top.itning.smp.smpinfo.entity.Role.*;
+
 /**
  * @author itning
  */
@@ -69,6 +71,10 @@ public class UserServiceImpl implements UserService {
      * 政治面貌数据
      */
     private static final String[] POLITICAL_RANGE_DATA = new String[]{"中共党员", "中共预备党员", "共青团员", "民革党员", "民盟盟员", "民建会员", "民进会员", "农工党党员", "致公党党员", "九三学社社员", "台盟盟员", "无党派人士", "群众"};
+    /**
+     * 手机号长度
+     */
+    private static final int TEL_LENGTH = 11;
 
     private final UserDao userDao;
 
@@ -85,37 +91,37 @@ public class UserServiceImpl implements UserService {
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private void checkAndInitRole(RoleDao roleDao) {
-        if (roleDao.existsById("1")) {
-            Role role = roleDao.findById("1").get();
-            if (!"学生".equals(role.getName())) {
+        if (roleDao.existsById(STUDENT_ROLE_ID)) {
+            Role role = roleDao.findById(STUDENT_ROLE_ID).get();
+            if (!STUDENT_ROLE_ID_STR.equals(role.getName())) {
                 logger.error("Id 1 Role Not Student And Is {}", role.getName());
             }
         } else {
             Role role = new Role();
-            role.setId("1");
-            role.setName("学生");
+            role.setId(STUDENT_ROLE_ID);
+            role.setName(STUDENT_ROLE_ID_STR);
             roleDao.saveAndFlush(role);
         }
-        if (roleDao.existsById("2")) {
-            Role role = roleDao.findById("2").get();
-            if (!"教师".equals(role.getName())) {
+        if (roleDao.existsById(TEACHER_ROLE_ID)) {
+            Role role = roleDao.findById(TEACHER_ROLE_ID).get();
+            if (!TEACHER_ROLE_ID_STR.equals(role.getName())) {
                 logger.error("Id 2 Role Not Teacher And Is {}", role.getName());
             }
         } else {
             Role role = new Role();
-            role.setId("2");
-            role.setName("教师");
+            role.setId(TEACHER_ROLE_ID);
+            role.setName(TEACHER_ROLE_ID_STR);
             roleDao.saveAndFlush(role);
         }
-        if (roleDao.existsById("3")) {
-            Role role = roleDao.findById("3").get();
-            if (!"辅导员".equals(role.getName())) {
+        if (roleDao.existsById(COUNSELOR_ROLE_ID)) {
+            Role role = roleDao.findById(COUNSELOR_ROLE_ID).get();
+            if (!COUNSELOR_ROLE_ID_STR.equals(role.getName())) {
                 logger.error("Id 3 Role Not Counselor And Is {}", role.getName());
             }
         } else {
             Role role = new Role();
-            role.setId("3");
-            role.setName("辅导员");
+            role.setId(COUNSELOR_ROLE_ID);
+            role.setName(COUNSELOR_ROLE_ID_STR);
             roleDao.saveAndFlush(role);
         }
     }
@@ -236,7 +242,7 @@ public class UserServiceImpl implements UserService {
             throw new FileException("工作簿数量错误：" + workbook.getNumberOfSheets(), HttpStatus.BAD_REQUEST);
         }
         Role role = new Role();
-        role.setId("1");
+        role.setId(STUDENT_ROLE_ID);
         Set<String> set = new TreeSet<>();
         List<StudentUserDTO> studentUserDtoList = new ArrayList<>();
         Sheet sheet = workbook.getSheetAt(0);
@@ -363,7 +369,7 @@ public class UserServiceImpl implements UserService {
                           String ethnic,
                           String roomNum,
                           String bedNum) {
-        if (StringUtils.isBlank(tel) || tel.trim().length() != 11) {
+        if (StringUtils.isBlank(tel) || tel.trim().length() != TEL_LENGTH) {
             canSave = false;
             set.add(initErrorMsg(i, 2, "手机号%s长度错误", tel));
         }

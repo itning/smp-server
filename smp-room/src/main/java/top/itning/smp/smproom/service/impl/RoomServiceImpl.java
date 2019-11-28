@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static top.itning.smp.smproom.util.DateUtils.getDateRange;
+import static top.itning.smp.smproom.util.GpsUtils.*;
 
 /**
  * @author itning
@@ -76,7 +77,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public StudentRoomCheck check(MultipartFile file, LoginUser loginUser, double longitude, double latitude) throws IOException {
         // 修正坐标
-        if (longitude > 180.0D || longitude < -180.0D || latitude > 90.0D || latitude < -90.0D) {
+        if (longitude > MAX_LONGITUDE || longitude < MIN_LONGITUDE || latitude > MAX_LATITUDE || latitude < MIN_LATITUDE) {
             throw new GpsException(longitude, latitude);
         }
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
@@ -290,6 +291,7 @@ public class RoomServiceImpl implements RoomService {
      * @param row      要插入的行
      * @param filePath 文件路径
      */
+    @SuppressWarnings("SameParameterValue")
     private void addPic(XSSFWorkbook workbook, CreationHelper helper, Drawing drawing, int col, int row, String filePath) {
         try (FileInputStream is = new FileInputStream(filePath)) {
             int pictureIdx = workbook.addPicture(is, Workbook.PICTURE_TYPE_JPEG);
