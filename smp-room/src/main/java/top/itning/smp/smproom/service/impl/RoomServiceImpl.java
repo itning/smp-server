@@ -28,6 +28,7 @@ import top.itning.smp.smproom.exception.UserNameDoesNotExistException;
 import top.itning.smp.smproom.security.LoginUser;
 import top.itning.smp.smproom.service.AppMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
+import top.itning.smp.smproom.util.DateUtils;
 import top.itning.smp.smproom.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
@@ -35,7 +36,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -51,8 +51,6 @@ import static top.itning.smp.smproom.util.GpsUtils.*;
 @Transactional(rollbackFor = Exception.class)
 public class RoomServiceImpl implements RoomService {
     private static final Logger logger = LoggerFactory.getLogger(RoomServiceImpl.class);
-    private static final ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy/MM/dd HH:mm:ss"));
-    private static final ThreadLocal<SimpleDateFormat> SIMPLE_DATE_FORMAT_THREAD_LOCAL_2 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
     private final StudentRoomCheckDao studentRoomCheckDao;
     private final InfoClient infoClient;
     private final LeaveClient leaveClient;
@@ -137,7 +135,7 @@ public class RoomServiceImpl implements RoomService {
         // 所有打卡同学
         List<StudentRoomCheck> studentRoomCheckList = studentRoomCheckDao.findAllByCheckTimeBetweenOrderByCheckTimeDesc(dateRange.getT1(), dateRange.getT2());
         // 所有请假同学
-        List<LeaveDTO> allLeave = leaveClient.getAllLeave(SIMPLE_DATE_FORMAT_THREAD_LOCAL_2.get().format(whereDay));
+        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(whereDay, DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
         // 所有未打卡同学（排除请假的同学）
         List<StudentUserDTO> unCheckList = allUser
                 .parallelStream()
@@ -275,7 +273,7 @@ public class RoomServiceImpl implements RoomService {
             row.createCell(3).setCellValue(studentRoomCheck.getUser().getStudentUser().getRoomNum());
             row.createCell(4).setCellValue(studentRoomCheck.getUser().getStudentUser().getBedNum());
             row.createCell(5).setCellValue(studentRoomCheck.getUser().getTel());
-            row.createCell(6).setCellValue(SIMPLE_DATE_FORMAT_THREAD_LOCAL.get().format(studentRoomCheck.getCheckTime()));
+            row.createCell(6).setCellValue(DateUtils.format(studentRoomCheck.getCheckTime(), DateUtils.YYYYMMDDHHMMSS_DATE_TIME_FORMATTER_2));
             row.createCell(7).setCellValue(studentRoomCheck.getLongitude() + "," + studentRoomCheck.getLatitude());
             addPic(workbook, helper, drawing, 8, i, customProperties.getResourceLocation() + studentRoomCheck.getId() + ".jpg");
         }

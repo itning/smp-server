@@ -9,27 +9,28 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 学生群组
+ * 学生班级学生
+ * 管理学生班级与学生之间的关系
  *
  * @author itning
  */
 @Data
-@Entity(name = "student_group")
+@Entity(name = "student_class_user")
 @IdClass(StudentGroupPrimaryKey.class)
-public class StudentGroup implements Serializable {
+public class StudentClassUser implements Serializable {
     /**
-     * StudentGroup ID
+     * StudentClassUser ID
      */
     @Id
     @ManyToOne(optional = false)
-    @JoinColumn(name = "studentId")
+    @JoinColumn(name = "studentId", columnDefinition = "char(36)")
     private User user;
     /**
      * StudentClass ID
      */
     @Id
     @ManyToOne(optional = false)
-    @JoinColumn(name = "studentClassId")
+    @JoinColumn(name = "studentClassId", columnDefinition = "char(36)")
     private StudentClass studentClass;
     /**
      * 创建时间

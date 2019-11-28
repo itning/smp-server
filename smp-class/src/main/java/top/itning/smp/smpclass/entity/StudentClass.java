@@ -34,7 +34,7 @@ public class StudentClass implements Serializable {
      * 所属教师
      */
     @ManyToOne(optional = false)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "teacherUserId")
     private User user;
     /**
      * 创建时间

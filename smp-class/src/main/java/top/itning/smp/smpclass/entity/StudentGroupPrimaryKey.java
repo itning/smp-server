@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 public class StudentGroupPrimaryKey implements Serializable {
     /**
-     * StudentGroup ID
+     * StudentClassUser ID
      */
     private String user;
     /**

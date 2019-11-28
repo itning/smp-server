@@ -4,6 +4,7 @@ import top.itning.utils.tuple.Tuple2;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -14,6 +15,9 @@ public class DateUtils {
      * 北京时区
      */
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Shanghai");
+
+    public static final DateTimeFormatter YYYYMMDD_DATE_TIME_FORMATTER_1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter YYYYMMDDHHMMSS_DATE_TIME_FORMATTER_2 = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
     /**
      * 将{@link Date}转换为{@link LocalDateTime}
@@ -57,5 +61,9 @@ public class DateUtils {
         Date t1 = localDateTime2Date(localDateTime);
         Date t2 = localDateTime2Date(localDateTime.plusDays(1));
         return new Tuple2<>(t1, t2);
+    }
+
+    public static String format(Date date, DateTimeFormatter dateTimeFormatter) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZONE_ID).format(dateTimeFormatter);
     }
 }
