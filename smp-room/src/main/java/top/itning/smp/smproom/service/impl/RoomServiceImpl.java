@@ -36,11 +36,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static top.itning.smp.smproom.util.DateUtils.getDateRange;
 
 /**
  * @author itning
@@ -328,27 +329,5 @@ public class RoomServiceImpl implements RoomService {
         c7.setCellValue("坐标");
         XSSFCell c8 = headerRow.createCell(8);
         c8.setCellValue("照片");
-    }
-
-    /**
-     * 获取开始日期和开始日期的第二天
-     * 日期时间均为零点
-     *
-     * @param startDate 开始日期
-     * @return T1 开始日期 T2 第二天日期
-     */
-    private Tuple2<Date, Date> getDateRange(Date startDate) {
-        Calendar cal1 = Calendar.getInstance();
-        cal1.setTime(startDate);
-        cal1.set(Calendar.HOUR_OF_DAY, 0);
-        cal1.set(Calendar.MINUTE, 0);
-        cal1.set(Calendar.SECOND, 0);
-        cal1.set(Calendar.MILLISECOND, 0);
-        Date date1 = cal1.getTime();
-
-        Calendar cal2 = Calendar.getInstance();
-        cal2.setTime(date1);
-        cal2.add(Calendar.DATE, 1);
-        return new Tuple2<>(date1, cal2.getTime());
     }
 }

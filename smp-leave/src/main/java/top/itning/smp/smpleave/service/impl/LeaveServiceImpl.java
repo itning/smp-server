@@ -31,13 +31,14 @@ import top.itning.smp.smpleave.util.OrikaUtils;
 import top.itning.utils.tuple.Tuple2;
 
 import javax.persistence.criteria.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static top.itning.smp.smpleave.util.DateUtils.*;
 
 /**
  * @author itning
@@ -46,8 +47,6 @@ import java.util.stream.Collectors;
 @Transactional(rollbackFor = Exception.class)
 public class LeaveServiceImpl implements LeaveService {
     private static final Logger logger = LoggerFactory.getLogger(LeaveServiceImpl.class);
-    private static final Date MIN_DATE = Date.from(LocalDate.of(2001, 1, 1).atStartOfDay().atZone(ZoneId.of("Asia/Shanghai")).toInstant());
-    private static final Date MAX_DATE = Date.from(LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).atZone(ZoneId.of("Asia/Shanghai")).toInstant());
     private final LeaveDao leaveDao;
     private final InfoClient infoClient;
     private final LeaveReasonDao leaveReasonDao;
@@ -61,13 +60,7 @@ public class LeaveServiceImpl implements LeaveService {
 
     @Override
     public Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status) {
-        return leaveDao.findAllByStatus(status, pageable).map(leave -> {
-            StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
-            LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
-            leaveDTO.setStudentUser(studentUser);
-            leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
-            return leaveDTO;
-        });
+        return leaveDao.findAllByStatus(status, pageable).map(mapLeave2LeaveDto());
     }
 
     @Override
@@ -81,20 +74,8 @@ public class LeaveServiceImpl implements LeaveService {
             return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
         });
 
-        Calendar startCalendar = Calendar.getInstance();
-        startCalendar.setTime(leave.getStartTime());
-        startCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        startCalendar.set(Calendar.MINUTE, 0);
-        startCalendar.set(Calendar.SECOND, 0);
-        startCalendar.set(Calendar.MILLISECOND, 0);
-        leave.setStartTime(startCalendar.getTime());
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.setTime(leave.getEndTime());
-        endCalendar.set(Calendar.HOUR_OF_DAY, 23);
-        endCalendar.set(Calendar.MINUTE, 59);
-        endCalendar.set(Calendar.SECOND, 59);
-        endCalendar.set(Calendar.MILLISECOND, 999);
-        leave.setEndTime(endCalendar.getTime());
+        leave.setStartTime(localDateTime2Date(with0Time(date2LocalDateTime(leave.getStartTime()))));
+        leave.setEndTime(localDateTime2Date(with59Time(date2LocalDateTime(leave.getEndTime()))));
 
         List<Leave> leaveList = leaveDao.findAllByUser(user);
         if (!leaveList.isEmpty()) {
@@ -149,17 +130,10 @@ public class LeaveServiceImpl implements LeaveService {
             if (Objects.nonNull(searchDTO.getEffective())) {
                 if (searchDTO.getEffective()) {
                     logger.debug("search < end time");
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.set(Calendar.HOUR_OF_DAY, 0);
-                    calendar.set(Calendar.MINUTE, 0);
-                    calendar.set(Calendar.SECOND, 0);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    dateIntervalQuery(list, cb, root, "endTime", calendar.getTime(), null);
+                    dateIntervalQuery(list, cb, root, "endTime", localDateTime2Date(with0Time(getNow())), null);
                 } else {
                     logger.debug("search > end time");
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.add(Calendar.DATE, 1);
-                    dateIntervalQuery(list, cb, root, "endTime", null, calendar.getTime());
+                    dateIntervalQuery(list, cb, root, "endTime", null, localDateTime2Date(getNextDayFromNow()));
                 }
             }
 
@@ -206,38 +180,16 @@ public class LeaveServiceImpl implements LeaveService {
 
     @Override
     public long countInEffectLeaves(Date date) {
-        return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
-            List<Predicate> list = new ArrayList<>();
-            Date searchDate = date;
-            if (searchDate == null) {
-                searchDate = new Date();
-            }
-            Tuple2<Date, Date> dateRange = getDateRange(searchDate);
-            dateIntervalQuery(list, cb, root, "startTime", null, dateRange.getT2());
-            dateIntervalQuery(list, cb, root, "endTime", dateRange.getT1(), null);
-            list.add(cb.or(
-                    cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
-                    cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
-            list.add(cb.equal(root.get("status"), true));
-            Predicate[] p = new Predicate[list.size()];
-            return cb.and(list.toArray(p));
-        });
+        return leaveDao.count(getLeaveSpecification(date));
     }
 
     @Override
     public boolean isUserLeaveToday(String userName, LeaveType leaveType) {
         return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            Date endTime = calendar.getTime();
-            calendar.add(Calendar.DATE, 1);
-            Date startTime = calendar.getTime();
-            dateIntervalQuery(list, cb, root, "startTime", null, startTime);
-            dateIntervalQuery(list, cb, root, "endTime", endTime, null);
+            Tuple2<Date, Date> dateRange = getDateRange(new Date());
+            dateIntervalQuery(list, cb, root, "startTime", null, dateRange.getT2());
+            dateIntervalQuery(list, cb, root, "endTime", dateRange.getT1(), null);
             list.add(cb.equal(root.get("status"), true));
             list.add(cb.or(
                     cb.equal(root.get("leaveType"), leaveType),
@@ -251,7 +203,20 @@ public class LeaveServiceImpl implements LeaveService {
 
     @Override
     public List<LeaveDTO> getLeaves(Date whereDay) {
-        return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
+        return leaveDao.findAll(getLeaveSpecification(whereDay))
+                .stream()
+                .map(mapLeave2LeaveDto())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据whereDay查询请假通过的寝室假或全假
+     *
+     * @param whereDay 那天开始
+     * @return Specification
+     */
+    private Specification<Leave> getLeaveSpecification(Date whereDay) {
+        return (Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             Tuple2<Date, Date> dateRange = getDateRange(whereDay);
             dateIntervalQuery(list, cb, root, "startTime", null, dateRange.getT2());
@@ -262,16 +227,7 @@ public class LeaveServiceImpl implements LeaveService {
             list.add(cb.equal(root.get("status"), true));
             Predicate[] p = new Predicate[list.size()];
             return cb.and(list.toArray(p));
-        })
-                .stream()
-                .map(leave -> {
-                    StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
-                    LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
-                    leaveDTO.setStudentUser(studentUser);
-                    leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
-                    return leaveDTO;
-                })
-                .collect(Collectors.toList());
+        };
     }
 
     @Override
@@ -281,13 +237,22 @@ public class LeaveServiceImpl implements LeaveService {
             logger.error("user info is null,but system should not null");
             return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
         });
-        return leaveDao.findAllByUser(user, pageable).map(leave -> {
+        return leaveDao.findAllByUser(user, pageable).map(mapLeave2LeaveDto());
+    }
+
+    /**
+     * 转换Leave到LeaveDTO
+     *
+     * @return LeaveDTO
+     */
+    private Function<Leave, LeaveDTO> mapLeave2LeaveDto() {
+        return leave -> {
             StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElse(null);
             LeaveDTO leaveDTO = OrikaUtils.a2b(leave, LeaveDTO.class);
             leaveDTO.setStudentUser(studentUser);
             leaveDTO.setLeaveReasonList(leaveDTO.getLeaveReasonList().stream().sorted(Comparator.comparing(LeaveReason::getGmtCreate).reversed()).collect(Collectors.toList()));
             return leaveDTO;
-        });
+        };
     }
 
     /**
@@ -315,20 +280,5 @@ public class LeaveServiceImpl implements LeaveService {
                 list.add(cb.between(root.get(field), MIN_DATE, endDate));
             }
         }
-    }
-
-    private Tuple2<Date, Date> getDateRange(Date startDate) {
-        Calendar cal1 = Calendar.getInstance();
-        cal1.setTime(startDate);
-        cal1.set(Calendar.HOUR_OF_DAY, 0);
-        cal1.set(Calendar.MINUTE, 0);
-        cal1.set(Calendar.SECOND, 0);
-        cal1.set(Calendar.MILLISECOND, 0);
-        Date date1 = cal1.getTime();
-
-        Calendar cal2 = Calendar.getInstance();
-        cal2.setTime(date1);
-        cal2.add(Calendar.DATE, 1);
-        return new Tuple2<>(date1, cal2.getTime());
     }
 }
