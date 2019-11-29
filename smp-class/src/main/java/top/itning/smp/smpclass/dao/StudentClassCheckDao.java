@@ -31,4 +31,11 @@ public interface StudentClassCheckDao extends JpaRepository<StudentClassCheck, S
      * @return 签到了返回<code>true</code>
      */
     boolean existsByUserAndStudentClassCheckMetaData(User user, StudentClassCheckMetaData studentClassCheckMetaData);
+
+    /**
+     * 根据班级删除所有打卡信息
+     *
+     * @param studentClass 班级
+     */
+    void deleteAllByStudentClass(StudentClass studentClass);
 }

@@ -19,14 +19,14 @@ import java.util.Date;
 @IdClass(StudentGroupPrimaryKey.class)
 public class StudentClassUser implements Serializable {
     /**
-     * StudentClassUser ID
+     * 学生 ID
      */
     @Id
     @ManyToOne(optional = false)
     @JoinColumn(name = "studentId", columnDefinition = "char(36)")
     private User user;
     /**
-     * StudentClass ID
+     * 班级 ID
      */
     @Id
     @ManyToOne(optional = false)

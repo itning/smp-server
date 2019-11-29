@@ -2,6 +2,7 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import top.itning.smp.smpclass.entity.StudentClass;
 import top.itning.smp.smpclass.entity.StudentClassUser;
 import top.itning.smp.smpclass.security.LoginUser;
 
@@ -26,4 +27,29 @@ public interface ClassUserService {
      * @return 加入的班级
      */
     StudentClassUser joinClass(LoginUser loginUser, String classNum);
+
+    /**
+     * 创建班级
+     *
+     * @param loginUser 登录用户
+     * @param name      班级名称
+     * @return 创建的班级
+     */
+    StudentClass newClass(LoginUser loginUser, String name);
+
+    /**
+     * 学生退出班级
+     *
+     * @param loginUser      登录用户
+     * @param studentClassId 班级ID
+     */
+    void quitClass(LoginUser loginUser, String studentClassId);
+
+    /**
+     * 教师解散班级
+     *
+     * @param loginUser      登录用户
+     * @param studentClassId 班级ID
+     */
+    void delClass(LoginUser loginUser, String studentClassId);
 }

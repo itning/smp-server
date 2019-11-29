@@ -15,4 +15,11 @@ public interface StudentClassCheckMetaDataDao extends JpaRepository<StudentClass
      * @return 最新签到信息
      */
     StudentClassCheckMetaData findTopByStudentClassOrderByGmtCreateDesc(StudentClass studentClass);
+
+    /**
+     * 根据班级删除元数据
+     *
+     * @param studentClass 班级
+     */
+    void deleteAllByStudentClass(StudentClass studentClass);
 }

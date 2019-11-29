@@ -33,7 +33,7 @@ public class StudentClassCheck implements Serializable {
     @JoinColumn(name = "userId")
     private User user;
     /**
-     * 所属群组
+     * 所属班级
      */
     @ManyToOne(optional = false)
     @JoinColumn(name = "studentClassId")

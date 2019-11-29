@@ -30,4 +30,20 @@ public interface StudentClassUserDao extends JpaRepository<StudentClassUser, Stu
      * @return 学生已经加入了班级返回<code>true</code>
      */
     boolean existsByUserAndStudentClass(User user, StudentClass studentClass);
+
+    /**
+     * 查找学生的班级
+     *
+     * @param user         用户
+     * @param studentClass 班级
+     * @return 学生加入的班级
+     */
+    StudentClassUser findByUserAndStudentClass(User user, StudentClass studentClass);
+
+    /**
+     * 根据班级删除所有学生加入的数据
+     *
+     * @param studentClass 班级
+     */
+    void deleteAllByStudentClass(StudentClass studentClass);
 }
