@@ -5,9 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustStudentLogin;
@@ -38,5 +36,32 @@ public class ClassCheckController {
                                           @MustStudentLogin LoginUser loginUser,
                                           @PathVariable String studentClassId) {
         return RestModel.ok(studentClassCheckService.getAllChecks(studentClassId, loginUser, pageable));
+    }
+
+    /**
+     * 检查是否可以签到
+     *
+     * @param studentClassId 学生班级ID
+     * @return ResponseEntity
+     */
+    @GetMapping("/can_check/{studentClassId}")
+    public ResponseEntity<?> canCheck(@MustStudentLogin LoginUser loginUser, @PathVariable String studentClassId) {
+        return RestModel.ok(studentClassCheckService.canCheck(studentClassId, loginUser));
+    }
+
+    /**
+     * 学生课堂签到
+     *
+     * @param longitude      经度
+     * @param latitude       纬度
+     * @param studentClassId 课堂ID
+     * @return ResponseEntity
+     */
+    @PostMapping("/check")
+    public ResponseEntity<?> check(@MustStudentLogin LoginUser loginUser,
+                                   @RequestParam("longitude") double longitude,
+                                   @RequestParam("latitude") double latitude,
+                                   @RequestParam("studentClassId") String studentClassId) {
+        return RestModel.created(studentClassCheckService.check(loginUser, studentClassId, longitude, latitude));
     }
 }

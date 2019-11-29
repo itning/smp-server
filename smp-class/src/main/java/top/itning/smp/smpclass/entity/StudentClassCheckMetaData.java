@@ -10,16 +10,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 学生课堂签到
- * 每个群组的签到信息
- *
  * @author itning
  */
 @Data
-@Entity(name = "student_class_check")
-public class StudentClassCheck implements Serializable {
+@Entity(name = "student_class_check_meta_data")
+public class StudentClassCheckMetaData implements Serializable {
     /**
-     * ID
+     * 元数据ID
      */
     @Id
     @GeneratedValue(generator = "idGenerator")
@@ -27,22 +24,15 @@ public class StudentClassCheck implements Serializable {
     @Column(length = 36, columnDefinition = "char(36)")
     private String id;
     /**
-     * 学生信息
-     */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "userId")
-    private User user;
-    /**
-     * 所属群组
-     */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "studentClassId")
-    private StudentClass studentClass;
-    /**
-     * 签到时间
+     * 签到开始时间
      */
     @Column(nullable = false)
-    private Date checkTime;
+    private Date startTime;
+    /**
+     * 签到结束时间
+     */
+    @Column(nullable = false)
+    private Date endTime;
     /**
      * 经度
      */
@@ -54,11 +44,16 @@ public class StudentClassCheck implements Serializable {
     @Column(nullable = false)
     private double latitude;
     /**
-     * 本次签到所对应的元数据
+     * 签到者距离教师经纬度最大距离
      */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "studentClassCheckMetaDataId")
-    private StudentClassCheckMetaData studentClassCheckMetaData;
+    @Column(nullable = false)
+    private float m;
+    /**
+     * 元数据所对应的班级
+     */
+    @ManyToOne
+    @JoinColumn(name = "studentClassId")
+    private StudentClass studentClass;
     /**
      * 创建时间
      */
