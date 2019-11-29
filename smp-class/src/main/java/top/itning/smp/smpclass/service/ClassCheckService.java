@@ -3,7 +3,10 @@ package top.itning.smp.smpclass.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import top.itning.smp.smpclass.entity.StudentClassCheck;
+import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.security.LoginUser;
+
+import java.util.Date;
 
 /**
  * @author itning
@@ -38,4 +41,19 @@ public interface ClassCheckService {
      * @return 学生课堂签到
      */
     StudentClassCheck check(LoginUser loginUser, String studentClassId, double longitude, double latitude);
+
+
+    /**
+     * 教师发起签到
+     *
+     * @param loginUser      登录用户
+     * @param longitude      经度
+     * @param latitude       纬度
+     * @param studentClassId 课堂ID
+     * @param m              最远签到距离（米）
+     * @param startTime      签到开始时间
+     * @param endTime        签到结束时间
+     * @return 学生课堂签到元数据
+     */
+    StudentClassCheckMetaData newCheck(LoginUser loginUser, double longitude, double latitude, String studentClassId, float m, Date startTime, Date endTime);
 }

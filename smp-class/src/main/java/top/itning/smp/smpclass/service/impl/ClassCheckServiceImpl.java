@@ -16,13 +16,17 @@ import top.itning.smp.smpclass.entity.StudentClass;
 import top.itning.smp.smpclass.entity.StudentClassCheck;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.entity.User;
+import top.itning.smp.smpclass.exception.GpsException;
 import top.itning.smp.smpclass.exception.NullFiledException;
+import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.GpsUtils;
 
 import java.util.Date;
+
+import static top.itning.smp.smpclass.util.GpsUtils.*;
 
 /**
  * @author itning
@@ -68,6 +72,9 @@ public class ClassCheckServiceImpl implements ClassCheckService {
 
     @Override
     public StudentClassCheck check(LoginUser loginUser, String studentClassId, double longitude, double latitude) {
+        if (longitude > MAX_LONGITUDE || longitude < MIN_LONGITUDE || latitude > MAX_LATITUDE || latitude < MIN_LATITUDE) {
+            throw new GpsException(longitude, latitude);
+        }
         StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("学生班级不存在", HttpStatus.NOT_FOUND));
         StudentClassCheckMetaData studentClassCheckMetaData = studentClassCheckMetaDataDao.findTopByStudentClassOrderByGmtCreateDesc(studentClass);
         if (studentClassCheckMetaData == null) {
@@ -101,5 +108,32 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         studentClassCheck.setStudentClassCheckMetaData(studentClassCheckMetaData);
         studentClassCheck.setCheckTime(new Date());
         return studentClassCheckDao.save(studentClassCheck);
+    }
+
+    @Override
+    public StudentClassCheckMetaData newCheck(LoginUser loginUser, double longitude, double latitude, String studentClassId, float m, Date startTime, Date endTime) {
+        if (longitude > MAX_LONGITUDE || longitude < MIN_LONGITUDE || latitude > MAX_LATITUDE || latitude < MIN_LATITUDE) {
+            throw new GpsException(longitude, latitude);
+        }
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("学生班级不存在", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!studentClass.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("创建失败", HttpStatus.FORBIDDEN);
+        }
+        if (m < 1) {
+            m = 1;
+        }
+        StudentClassCheckMetaData studentClassCheckMetaData = new StudentClassCheckMetaData();
+        studentClassCheckMetaData.setStartTime(startTime);
+        studentClassCheckMetaData.setEndTime(endTime);
+        studentClassCheckMetaData.setLongitude(longitude);
+        studentClassCheckMetaData.setLatitude(latitude);
+        studentClassCheckMetaData.setM(m);
+        studentClassCheckMetaData.setStudentClass(studentClass);
+        return studentClassCheckMetaDataDao.save(studentClassCheckMetaData);
     }
 }

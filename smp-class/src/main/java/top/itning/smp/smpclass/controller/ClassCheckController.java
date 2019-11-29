@@ -4,12 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustStudentLogin;
+import top.itning.smp.smpclass.security.MustTeacherLogin;
 import top.itning.smp.smpclass.service.ClassCheckService;
+
+import java.util.Date;
 
 /**
  * @author itning
@@ -63,5 +67,29 @@ public class ClassCheckController {
                                    @RequestParam("latitude") double latitude,
                                    @RequestParam("studentClassId") String studentClassId) {
         return RestModel.created(studentClassCheckService.check(loginUser, studentClassId, longitude, latitude));
+    }
+
+    /**
+     * 教师发起签到
+     *
+     * @param longitude      经度
+     * @param latitude       纬度
+     * @param studentClassId 课堂ID
+     * @param m              最远签到距离（米）
+     * @param startTime      签到开始时间
+     * @param endTime        签到结束时间
+     * @return ResponseEntity
+     */
+    @PostMapping("/new_check")
+    public ResponseEntity<?> newCheck(@MustTeacherLogin LoginUser loginUser,
+                                      @RequestParam("longitude") double longitude,
+                                      @RequestParam("latitude") double latitude,
+                                      @RequestParam("studentClassId") String studentClassId,
+                                      @RequestParam("m") float m,
+                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                      @RequestParam("startTime") Date startTime,
+                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                      @RequestParam("endTime") Date endTime) {
+        return RestModel.created(studentClassCheckService.newCheck(loginUser, longitude, latitude, studentClassId, m, startTime, endTime));
     }
 }

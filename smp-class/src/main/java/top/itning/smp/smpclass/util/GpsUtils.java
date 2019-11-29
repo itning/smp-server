@@ -8,6 +8,10 @@ package top.itning.smp.smpclass.util;
  */
 @SuppressWarnings("all")
 public class GpsUtils {
+    public static final double MAX_LONGITUDE = 180.0D;
+    public static final double MIN_LONGITUDE = -180.0D;
+    public static final double MAX_LATITUDE = 90.0D;
+    public static final double MIN_LATITUDE = -90.0D;
     private static ThreadLocal<BearingDistanceCache> sBearingDistanceCache = ThreadLocal.withInitial(BearingDistanceCache::new);
 
     /**
