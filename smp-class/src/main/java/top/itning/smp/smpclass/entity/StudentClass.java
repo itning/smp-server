@@ -31,6 +31,11 @@ public class StudentClass implements Serializable {
     @Column(nullable = false)
     private String name;
     /**
+     * 班号（创建时教师指定，唯一；学生加入用此）
+     */
+    @Column(nullable = false, unique = true)
+    private String classNum;
+    /**
      * 所属教师
      */
     @ManyToOne(optional = false)

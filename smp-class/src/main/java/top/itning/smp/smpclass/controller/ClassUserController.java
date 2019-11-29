@@ -5,8 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustStudentLogin;
@@ -35,5 +34,16 @@ public class ClassUserController {
                                                             Pageable pageable,
                                                     @MustStudentLogin LoginUser loginUser) {
         return RestModel.ok(groupService.getAllStudentClassUsers(loginUser, pageable));
+    }
+
+    /**
+     * 加入班级
+     *
+     * @param classNum 班号
+     * @return ResponseEntity
+     */
+    @PostMapping("/join_class")
+    public ResponseEntity<?> joinClass(@MustStudentLogin LoginUser loginUser, @RequestParam String classNum) {
+        return RestModel.created(groupService.joinClass(loginUser, classNum));
     }
 }

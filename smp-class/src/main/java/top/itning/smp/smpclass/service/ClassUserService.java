@@ -17,4 +17,13 @@ public interface ClassUserService {
      * @return 学生班级
      */
     Page<StudentClassUser> getAllStudentClassUsers(LoginUser loginUser, Pageable pageable);
+
+    /**
+     * 学生加入班级
+     *
+     * @param loginUser 登录用户
+     * @param classNum  班号
+     * @return 加入的班级
+     */
+    StudentClassUser joinClass(LoginUser loginUser, String classNum);
 }
