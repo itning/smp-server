@@ -8,6 +8,8 @@ import top.itning.smp.smpclass.entity.StudentClassCheck;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.entity.User;
 
+import java.util.List;
+
 
 /**
  * @author itning
@@ -38,4 +40,12 @@ public interface StudentClassCheckDao extends JpaRepository<StudentClassCheck, S
      * @param studentClass 班级
      */
     void deleteAllByStudentClass(StudentClass studentClass);
+
+    /**
+     * 根据元数据查找签到信息
+     *
+     * @param studentClassCheckMetaData 元数据
+     * @return 签到信息
+     */
+    List<StudentClassCheck> findAllByStudentClassCheckMetaData(StudentClassCheckMetaData studentClassCheckMetaData);
 }

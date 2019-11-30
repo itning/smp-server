@@ -92,4 +92,16 @@ public class ClassCheckController {
                                       @RequestParam("endTime") Date endTime) {
         return RestModel.created(studentClassCheckService.newCheck(loginUser, longitude, latitude, studentClassId, m, startTime, endTime));
     }
+
+    /**
+     * 根据签到元数据获取该班级的签到信息
+     *
+     * @param studentClassCheckMetaDataId 元数据ID
+     * @return ResponseEntity
+     */
+    @GetMapping("/check/{studentClassCheckMetaDataId}")
+    public ResponseEntity<?> check(@MustTeacherLogin LoginUser loginUser,
+                                   @PathVariable String studentClassCheckMetaDataId) {
+        return RestModel.ok(studentClassCheckService.getCheckInfoByMetaDataId(studentClassCheckMetaDataId, loginUser));
+    }
 }

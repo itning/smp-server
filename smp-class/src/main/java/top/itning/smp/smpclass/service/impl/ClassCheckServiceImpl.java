@@ -12,10 +12,9 @@ import top.itning.smp.smpclass.client.InfoClient;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
-import top.itning.smp.smpclass.entity.StudentClass;
-import top.itning.smp.smpclass.entity.StudentClassCheck;
-import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
-import top.itning.smp.smpclass.entity.User;
+import top.itning.smp.smpclass.dao.StudentClassUserDao;
+import top.itning.smp.smpclass.dto.StudentClassCheckDTO;
+import top.itning.smp.smpclass.entity.*;
 import top.itning.smp.smpclass.exception.GpsException;
 import top.itning.smp.smpclass.exception.NullFiledException;
 import top.itning.smp.smpclass.exception.SecurityException;
@@ -25,6 +24,8 @@ import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.GpsUtils;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static top.itning.smp.smpclass.util.GpsUtils.*;
 
@@ -37,13 +38,15 @@ public class ClassCheckServiceImpl implements ClassCheckService {
     private static final Logger logger = LoggerFactory.getLogger(ClassCheckServiceImpl.class);
     private final StudentClassCheckMetaDataDao studentClassCheckMetaDataDao;
     private final StudentClassCheckDao studentClassCheckDao;
+    private final StudentClassUserDao studentClassUserDao;
     private final StudentClassDao studentClassDao;
     private final InfoClient infoClient;
 
     @Autowired
-    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassDao studentClassDao, InfoClient infoClient) {
+    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, InfoClient infoClient) {
         this.studentClassCheckMetaDataDao = studentClassCheckMetaDataDao;
         this.studentClassCheckDao = studentClassCheckDao;
+        this.studentClassUserDao = studentClassUserDao;
         this.studentClassDao = studentClassDao;
         this.infoClient = infoClient;
     }
@@ -135,5 +138,39 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         studentClassCheckMetaData.setM(m);
         studentClassCheckMetaData.setStudentClass(studentClass);
         return studentClassCheckMetaDataDao.save(studentClassCheckMetaData);
+    }
+
+    @Override
+    public List<StudentClassCheckDTO> getCheckInfoByMetaDataId(String studentClassCheckMetaDataId, LoginUser loginUser) {
+        StudentClassCheckMetaData studentClassCheckMetaData = studentClassCheckMetaDataDao.findById(studentClassCheckMetaDataId).orElseThrow(() -> new NullFiledException("没有这个签到", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!studentClassCheckMetaData.getStudentClass().getUser().getId().equals(user.getId())) {
+            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+        }
+        List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClassCheckMetaData.getStudentClass());
+        List<StudentClassCheck> studentClassCheckList = studentClassCheckDao.findAllByStudentClassCheckMetaData(studentClassCheckMetaData);
+        return studentClassUserList
+                .parallelStream()
+                .map(studentClassUser -> {
+                    StudentClassCheckDTO studentClassCheckDto = new StudentClassCheckDTO();
+                    studentClassCheckDto.setUser(studentClassUser.getUser());
+                    studentClassCheckDto.setStudentClass(studentClassUser.getStudentClass());
+                    studentClassCheckDto.setCheck(false);
+                    studentClassCheckDto.setCheckTime(null);
+                    studentClassCheckDto.setGmtCreate(studentClassUser.getGmtCreate());
+                    studentClassCheckDto.setGmtModified(studentClassUser.getGmtModified());
+                    studentClassCheckList.stream().findAny().ifPresent(studentClassCheck -> {
+                        studentClassCheckDto.setCheck(true);
+                        studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
+                        studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
+                        studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
+                    });
+                    return studentClassCheckDto;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -2,11 +2,13 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import top.itning.smp.smpclass.dto.StudentClassCheckDTO;
 import top.itning.smp.smpclass.entity.StudentClassCheck;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.security.LoginUser;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -56,4 +58,13 @@ public interface ClassCheckService {
      * @return 学生课堂签到元数据
      */
     StudentClassCheckMetaData newCheck(LoginUser loginUser, double longitude, double latitude, String studentClassId, float m, Date startTime, Date endTime);
+
+    /**
+     * 获取某个班级某个元数据的签到信息
+     *
+     * @param studentClassCheckMetaDataId 元数据ID
+     * @param loginUser                   登录用户
+     * @return 签到信息
+     */
+    List<StudentClassCheckDTO> getCheckInfoByMetaDataId(String studentClassCheckMetaDataId, LoginUser loginUser);
 }
