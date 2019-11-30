@@ -8,6 +8,8 @@ import top.itning.smp.smpclass.entity.StudentClassUser;
 import top.itning.smp.smpclass.entity.StudentGroupPrimaryKey;
 import top.itning.smp.smpclass.entity.User;
 
+import java.util.List;
+
 
 /**
  * @author itning
@@ -46,4 +48,12 @@ public interface StudentClassUserDao extends JpaRepository<StudentClassUser, Stu
      * @param studentClass 班级
      */
     void deleteAllByStudentClass(StudentClass studentClass);
+
+    /**
+     * 查找某个班级的所有加入的学生
+     *
+     * @param studentClass 班级
+     * @return 所有学生
+     */
+    List<StudentClassUser> findAllByStudentClass(StudentClass studentClass);
 }

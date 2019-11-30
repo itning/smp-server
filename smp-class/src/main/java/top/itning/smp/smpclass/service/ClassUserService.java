@@ -2,9 +2,15 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import top.itning.smp.smpclass.client.entity.LeaveDTO;
+import top.itning.smp.smpclass.dto.StudentClassDTO;
 import top.itning.smp.smpclass.entity.StudentClass;
+import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.entity.StudentClassUser;
 import top.itning.smp.smpclass.security.LoginUser;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author itning
@@ -52,4 +58,33 @@ public interface ClassUserService {
      * @param studentClassId 班级ID
      */
     void delClass(LoginUser loginUser, String studentClassId);
+
+    /**
+     * 获取教师创建的班级
+     *
+     * @param loginUser 登录用户
+     * @param pageable  分页
+     * @return 教师创建的班级
+     */
+    Page<StudentClassDTO> getAllStudentClass(LoginUser loginUser, Pageable pageable);
+
+    /**
+     * 获取所有签到元数据
+     *
+     * @param studentClassId 班级ID
+     * @param loginUser      登录用户
+     * @param pageable       分页
+     * @return 所有签到元数据
+     */
+    Page<StudentClassCheckMetaData> getAllStudentClassCheckMetaData(String studentClassId, LoginUser loginUser, Pageable pageable);
+
+    /**
+     * 获取某班级的请假信息
+     *
+     * @param loginUser      登录用户
+     * @param studentClassId 班级ID
+     * @param whereDay       哪天
+     * @return 某班级的请假信息集合
+     */
+    List<LeaveDTO> getStudentClassLeave(LoginUser loginUser, String studentClassId, Date whereDay);
 }

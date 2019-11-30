@@ -46,6 +46,17 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/ma.glasnost.orika/orika-core -->
+        <dependency>
+            <groupId>ma.glasnost.orika</groupId>
+            <artifactId>orika-core</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.itning</groupId>
+            <artifactId>utils-spring-boot-starter</artifactId>
+            <version>1.0.1-RELEASE</version>
+        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>

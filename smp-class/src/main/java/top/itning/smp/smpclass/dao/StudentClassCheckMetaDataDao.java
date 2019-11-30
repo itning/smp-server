@@ -1,5 +1,7 @@
 package top.itning.smp.smpclass.dao;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import top.itning.smp.smpclass.entity.StudentClass;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
@@ -22,4 +24,13 @@ public interface StudentClassCheckMetaDataDao extends JpaRepository<StudentClass
      * @param studentClass 班级
      */
     void deleteAllByStudentClass(StudentClass studentClass);
+
+    /**
+     * 查找所有签到元数据
+     *
+     * @param studentClass 班级
+     * @param pageable     分页
+     * @return 所有签到元数据
+     */
+    Page<StudentClassCheckMetaData> findAllByStudentClass(StudentClass studentClass, Pageable pageable);
 }

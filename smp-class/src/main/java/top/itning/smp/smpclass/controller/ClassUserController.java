@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustStudentLogin;
 import top.itning.smp.smpclass.security.MustTeacherLogin;
 import top.itning.smp.smpclass.service.ClassUserService;
+
+import java.util.Date;
 
 /**
  * @author itning
@@ -84,5 +84,48 @@ public class ClassUserController {
     public ResponseEntity<?> delClass(@MustTeacherLogin LoginUser loginUser, @RequestParam String studentClassId) {
         classUserService.delClass(loginUser, studentClassId);
         return RestModel.noContent();
+    }
+
+    /**
+     * 获取教师创建的班级
+     *
+     * @param pageable 分页
+     * @return ResponseEntity
+     */
+    @GetMapping("/student_class")
+    public ResponseEntity<?> studentClass(@PageableDefault(size = 20, sort = {"gmtCreate"}, direction = Sort.Direction.DESC)
+                                                  Pageable pageable,
+                                          @MustTeacherLogin LoginUser loginUser) {
+        return RestModel.ok(classUserService.getAllStudentClass(loginUser, pageable));
+    }
+
+    /**
+     * 获取所有签到元数据
+     *
+     * @param studentClassId 班级ID
+     * @param pageable       分页
+     * @return ResponseEntity
+     */
+    @GetMapping("/student_class_check_meta_data/{studentClassId}")
+    public ResponseEntity<?> getAllStudentClassCheckMetaData(@PageableDefault(size = 20, sort = {"gmtCreate"}, direction = Sort.Direction.DESC)
+                                                                     Pageable pageable,
+                                                             @MustTeacherLogin LoginUser loginUser,
+                                                             @PathVariable("studentClassId") String studentClassId) {
+        return RestModel.ok(classUserService.getAllStudentClassCheckMetaData(studentClassId, loginUser, pageable));
+    }
+
+    /**
+     * 获取班级请假信息
+     *
+     * @param studentClassId 班级ID
+     * @param whereDay       哪天
+     * @return ResponseEntity
+     */
+    @GetMapping("/student_class_leave")
+    public ResponseEntity<?> getStudentClassLeave(@MustTeacherLogin LoginUser loginUser,
+                                                  @RequestParam String studentClassId,
+                                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                                  @RequestParam("whereDay") Date whereDay) {
+        return RestModel.ok(classUserService.getStudentClassLeave(loginUser, studentClassId, whereDay));
     }
 }

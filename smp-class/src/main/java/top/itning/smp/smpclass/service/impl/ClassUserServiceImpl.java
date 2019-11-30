@@ -9,11 +9,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpclass.client.InfoClient;
+import top.itning.smp.smpclass.client.LeaveClient;
+import top.itning.smp.smpclass.client.entity.LeaveDTO;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
 import top.itning.smp.smpclass.dao.StudentClassUserDao;
+import top.itning.smp.smpclass.dto.StudentClassDTO;
 import top.itning.smp.smpclass.entity.StudentClass;
+import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.entity.StudentClassUser;
 import top.itning.smp.smpclass.entity.User;
 import top.itning.smp.smpclass.exception.NullFiledException;
@@ -21,8 +25,14 @@ import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassUserService;
+import top.itning.smp.smpclass.util.DateUtils;
+import top.itning.smp.smpclass.util.OrikaUtils;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author itning
@@ -36,14 +46,16 @@ public class ClassUserServiceImpl implements ClassUserService {
     private final StudentClassCheckDao studentClassCheckDao;
     private final StudentClassCheckMetaDataDao studentClassCheckMetaDataDao;
     private final InfoClient infoClient;
+    private final LeaveClient leaveClient;
 
     @Autowired
-    public ClassUserServiceImpl(StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, StudentClassCheckDao studentClassCheckDao, StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, InfoClient infoClient) {
+    public ClassUserServiceImpl(StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, StudentClassCheckDao studentClassCheckDao, StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, InfoClient infoClient, LeaveClient leaveClient) {
         this.studentClassUserDao = studentClassUserDao;
         this.studentClassDao = studentClassDao;
         this.studentClassCheckDao = studentClassCheckDao;
         this.studentClassCheckMetaDataDao = studentClassCheckMetaDataDao;
         this.infoClient = infoClient;
+        this.leaveClient = leaveClient;
     }
 
     @Override
@@ -126,6 +138,58 @@ public class ClassUserServiceImpl implements ClassUserService {
         studentClassUserDao.deleteAllByStudentClass(studentClass);
         // 4.删除班级
         studentClassDao.deleteById(studentClassId);
+    }
+
+    @Override
+    public Page<StudentClassDTO> getAllStudentClass(LoginUser loginUser, Pageable pageable) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        return studentClassDao.findByUser(user, pageable).map(studentClass -> {
+            StudentClassDTO studentClassDTO = OrikaUtils.a2b(studentClass, StudentClassDTO.class);
+            studentClassDTO.setStudentClassUserList(studentClassUserDao.findAllByStudentClass(studentClass));
+            return studentClassDTO;
+        });
+    }
+
+    @Override
+    public Page<StudentClassCheckMetaData> getAllStudentClassCheckMetaData(String studentClassId, LoginUser loginUser, Pageable pageable) {
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!studentClass.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+        }
+        return studentClassCheckMetaDataDao.findAllByStudentClass(studentClass, pageable);
+    }
+
+    @Override
+    public List<LeaveDTO> getStudentClassLeave(LoginUser loginUser, String studentClassId, Date whereDay) {
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!studentClass.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+        }
+        List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClass);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return leaveClient.getAllLeave(DateUtils.date2LocalDateTime(whereDay).format(formatter))
+                .stream()
+                .filter(leaveDTO -> {
+                    if (studentClassUserList == null || studentClassUserList.isEmpty()) {
+                        return false;
+                    }
+                    return studentClassUserList.stream().anyMatch(studentClassUser -> studentClassUser.getUser().getId().equals(leaveDTO.getStudentUser().getId()));
+                })
+                .collect(Collectors.toList());
     }
 
     /**
