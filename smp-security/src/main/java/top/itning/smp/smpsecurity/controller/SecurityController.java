@@ -3,6 +3,7 @@ package top.itning.smp.smpsecurity.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,5 +34,15 @@ public class SecurityController {
     public ResponseEntity<?> login(@RequestParam("username") String username,
                                    @RequestParam("password") String password) throws JsonProcessingException {
         return RestModel.ok(securityService.login(username, password));
+    }
+
+    /**
+     * 检查服务器连接
+     *
+     * @return pong
+     */
+    @GetMapping("/ping")
+    public ResponseEntity<?> ping() {
+        return RestModel.ok("PONG");
     }
 }
