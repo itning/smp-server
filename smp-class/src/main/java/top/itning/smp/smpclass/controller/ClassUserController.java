@@ -128,4 +128,19 @@ public class ClassUserController {
                                                   @RequestParam("whereDay") Date whereDay) {
         return RestModel.ok(classUserService.getStudentClassLeave(loginUser, studentClassId, whereDay));
     }
+
+    /**
+     * 教师删除自己班级的学生
+     *
+     * @param studentUserName 用户名
+     * @param studentClassId  班级ID
+     * @return ResponseEntity
+     */
+    @PostMapping("/del_student")
+    public ResponseEntity<?> delStudent(@MustTeacherLogin LoginUser loginUser,
+                                        @RequestParam String studentUserName,
+                                        @RequestParam String studentClassId) {
+        classUserService.delStudent(studentUserName, studentClassId, loginUser);
+        return RestModel.noContent();
+    }
 }

@@ -16,10 +16,7 @@ import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
 import top.itning.smp.smpclass.dao.StudentClassUserDao;
 import top.itning.smp.smpclass.dto.StudentClassDTO;
-import top.itning.smp.smpclass.entity.StudentClass;
-import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
-import top.itning.smp.smpclass.entity.StudentClassUser;
-import top.itning.smp.smpclass.entity.User;
+import top.itning.smp.smpclass.entity.*;
 import top.itning.smp.smpclass.exception.NullFiledException;
 import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
@@ -190,6 +187,30 @@ public class ClassUserServiceImpl implements ClassUserService {
                     return studentClassUserList.stream().anyMatch(studentClassUser -> studentClassUser.getUser().getId().equals(leaveDTO.getStudentUser().getId()));
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void delStudent(String studentUserName, String studentClassId, LoginUser loginUser) {
+        User teacherUser = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        User studentUser = infoClient.getUserInfoByUserName(studentUserName).orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.NOT_FOUND));
+        if (!studentUser.getRole().getId().equals(Role.STUDENT_ROLE_ID)) {
+            // 不是学生
+            throw new SecurityException("删除失败", HttpStatus.FORBIDDEN);
+        }
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        if (!studentClass.getUser().getId().equals(teacherUser.getId())) {
+            // 不是这个教师的班级
+            throw new SecurityException("删除失败", HttpStatus.FORBIDDEN);
+        }
+        StudentClassUser studentClassUser = studentClassUserDao.findByUserAndStudentClass(studentUser, studentClass);
+        if (studentClassUser == null) {
+            throw new NullFiledException("该班级没有这个学生", HttpStatus.BAD_REQUEST);
+        }
+        studentClassUserDao.delete(studentClassUser);
     }
 
     /**

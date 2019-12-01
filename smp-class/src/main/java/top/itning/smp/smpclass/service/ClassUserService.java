@@ -87,4 +87,13 @@ public interface ClassUserService {
      * @return 某班级的请假信息集合
      */
     List<LeaveDTO> getStudentClassLeave(LoginUser loginUser, String studentClassId, Date whereDay);
+
+    /**
+     * 教师删除自己班级的学生
+     *
+     * @param studentUserName 学生用户名
+     * @param studentClassId  学生班级ID
+     * @param loginUser       登录用户
+     */
+    void delStudent(String studentUserName, String studentClassId, LoginUser loginUser);
 }

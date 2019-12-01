@@ -23,7 +23,6 @@ import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.GpsUtils;
 
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -196,25 +195,18 @@ public class ClassCheckServiceImpl implements ClassCheckService {
             throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
         }
         if (studentUser == null) {
-            studentUser = infoClient.getUserInfoByUserName(studentUserName).orElseThrow(() -> {
-                // 不应出现该异常，因为用户传参必然存在
-                logger.error("user info is null,but system should not null");
-                return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
-            });
+            studentUser = infoClient.getUserInfoByUserName(studentUserName).orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.NOT_FOUND));
         }
         final User finalStudentUser = studentUser;
         return studentClassCheckMetaDataDao.findAllByStudentClass(studentClass)
                 .stream()
-                .sorted(new Comparator<StudentClassCheckMetaData>() {
-                    @Override
-                    public int compare(StudentClassCheckMetaData o1, StudentClassCheckMetaData o2) {
-                        if (o1.getGmtCreate().before(o2.getGmtCreate())) {
-                            return 1;
-                        } else if (o1.getGmtCreate().after(o2.getGmtCreate())) {
-                            return -1;
-                        } else {
-                            return 0;
-                        }
+                .sorted((o1, o2) -> {
+                    if (o1.getGmtCreate().before(o2.getGmtCreate())) {
+                        return 1;
+                    } else if (o1.getGmtCreate().after(o2.getGmtCreate())) {
+                        return -1;
+                    } else {
+                        return 0;
                     }
                 })
                 .map(studentClassCheckMetaData -> {
