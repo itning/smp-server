@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
+import top.itning.smp.smpclass.security.MustLogin;
 import top.itning.smp.smpclass.security.MustStudentLogin;
 import top.itning.smp.smpclass.security.MustTeacherLogin;
 import top.itning.smp.smpclass.service.ClassCheckService;
@@ -103,5 +104,19 @@ public class ClassCheckController {
     public ResponseEntity<?> check(@MustTeacherLogin LoginUser loginUser,
                                    @PathVariable String studentClassCheckMetaDataId) {
         return RestModel.ok(studentClassCheckService.getCheckInfoByMetaDataId(studentClassCheckMetaDataId, loginUser));
+    }
+
+    /**
+     * 获取签到信息
+     *
+     * @param studentUserName 学生用户名
+     * @param studentClassId  班级ID
+     * @return ResponseEntity
+     */
+    @GetMapping("/user_check_detail")
+    public ResponseEntity<?> getUserCheckDetail(@MustLogin LoginUser loginUser,
+                                                @RequestParam String studentUserName,
+                                                @RequestParam String studentClassId) {
+        return RestModel.ok(studentClassCheckService.getUserCheckDetail(studentUserName, studentClassId, loginUser));
     }
 }

@@ -23,6 +23,7 @@ import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.GpsUtils;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -169,6 +170,69 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                         studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                         studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
                     });
+                    return studentClassCheckDto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<StudentClassCheckDTO> getUserCheckDetail(String studentUserName, String studentClassId, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        User studentUser = null;
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("学生班级不存在", HttpStatus.NOT_FOUND));
+        if (user.getUsername().equals(studentUserName)) {
+            // 学生查询
+            studentUser = user;
+            if (!studentClassUserDao.existsByUserAndStudentClass(user, studentClass)) {
+                // 该学生没有加入这个班级
+                throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+            }
+        } else if (!user.getId().equals(studentClass.getUser().getId())) {
+            // 教师或辅导员登录 但是班级创建者和登录用户不一致
+            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+        }
+        if (studentUser == null) {
+            studentUser = infoClient.getUserInfoByUserName(studentUserName).orElseThrow(() -> {
+                // 不应出现该异常，因为用户传参必然存在
+                logger.error("user info is null,but system should not null");
+                return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+            });
+        }
+        final User finalStudentUser = studentUser;
+        return studentClassCheckMetaDataDao.findAllByStudentClass(studentClass)
+                .stream()
+                .sorted(new Comparator<StudentClassCheckMetaData>() {
+                    @Override
+                    public int compare(StudentClassCheckMetaData o1, StudentClassCheckMetaData o2) {
+                        if (o1.getGmtCreate().before(o2.getGmtCreate())) {
+                            return 1;
+                        } else if (o1.getGmtCreate().after(o2.getGmtCreate())) {
+                            return -1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                })
+                .map(studentClassCheckMetaData -> {
+                    StudentClassCheckDTO studentClassCheckDto = new StudentClassCheckDTO();
+                    studentClassCheckDto.setGmtCreate(studentClassCheckMetaData.getGmtCreate());
+                    studentClassCheckDto.setGmtModified(studentClassCheckMetaData.getGmtModified());
+                    StudentClassCheck studentClassCheck = studentClassCheckDao.findTopByUserAndStudentClassAndStudentClassCheckMetaData(finalStudentUser, studentClass, studentClassCheckMetaData);
+                    if (studentClassCheck == null) {
+                        studentClassCheckDto.setCheck(false);
+                        studentClassCheckDto.setCheckTime(null);
+                    } else {
+                        studentClassCheckDto.setCheck(true);
+                        studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
+                        studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
+                        studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
+                    }
+                    studentClassCheckDto.setUser(finalStudentUser);
+                    studentClassCheckDto.setStudentClass(studentClass);
                     return studentClassCheckDto;
                 })
                 .collect(Collectors.toList());

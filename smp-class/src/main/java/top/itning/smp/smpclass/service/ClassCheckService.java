@@ -67,4 +67,14 @@ public interface ClassCheckService {
      * @return 签到信息
      */
     List<StudentClassCheckDTO> getCheckInfoByMetaDataId(String studentClassCheckMetaDataId, LoginUser loginUser);
+
+    /**
+     * 获取签到信息
+     *
+     * @param studentUserName 学生用户名
+     * @param studentClassId  班级ID
+     * @param loginUser       登录用户
+     * @return 签到信息
+     */
+    List<StudentClassCheckDTO> getUserCheckDetail(String studentUserName, String studentClassId, LoginUser loginUser);
 }

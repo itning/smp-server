@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import top.itning.smp.smpclass.entity.StudentClass;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 
+import java.util.List;
+
 /**
  * @author itning
  */
@@ -33,4 +35,12 @@ public interface StudentClassCheckMetaDataDao extends JpaRepository<StudentClass
      * @return 所有签到元数据
      */
     Page<StudentClassCheckMetaData> findAllByStudentClass(StudentClass studentClass, Pageable pageable);
+
+    /**
+     * 查找所有签到元数据
+     *
+     * @param studentClass 班级
+     * @return 所有签到元数据
+     */
+    List<StudentClassCheckMetaData> findAllByStudentClass(StudentClass studentClass);
 }
