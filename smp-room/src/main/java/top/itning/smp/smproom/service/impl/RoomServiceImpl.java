@@ -127,7 +127,7 @@ public class RoomServiceImpl implements RoomService {
         XSSFSheet sheet = sheets.createSheet();
         XSSFRow headerRow = sheet.createRow(0);
         CreationHelper helper = sheets.getCreationHelper();
-        Drawing drawing = sheet.createDrawingPatriarch();
+        XSSFDrawing drawing = sheet.createDrawingPatriarch();
         initExportHeader(headerRow);
         Tuple2<Date, Date> dateRange = getDateRange(whereDay);
         // 所有学生
@@ -263,7 +263,7 @@ public class RoomServiceImpl implements RoomService {
      * @param sheet                工作表
      * @param studentRoomCheckList 打卡的学生信息集合
      */
-    private void addRoomCheckInfo(XSSFWorkbook workbook, CreationHelper helper, Drawing drawing, XSSFSheet sheet, List<StudentRoomCheck> studentRoomCheckList) {
+    private void addRoomCheckInfo(XSSFWorkbook workbook, CreationHelper helper, XSSFDrawing drawing, XSSFSheet sheet, List<StudentRoomCheck> studentRoomCheckList) {
         for (int i = 1; i <= studentRoomCheckList.size(); i++) {
             XSSFRow row = sheet.createRow(i);
             StudentRoomCheck studentRoomCheck = studentRoomCheckList.get(i - 1);
@@ -290,7 +290,7 @@ public class RoomServiceImpl implements RoomService {
      * @param filePath 文件路径
      */
     @SuppressWarnings("SameParameterValue")
-    private void addPic(XSSFWorkbook workbook, CreationHelper helper, Drawing drawing, int col, int row, String filePath) {
+    private void addPic(XSSFWorkbook workbook, CreationHelper helper, XSSFDrawing drawing, int col, int row, String filePath) {
         try (FileInputStream is = new FileInputStream(filePath)) {
             int pictureIdx = workbook.addPicture(is, Workbook.PICTURE_TYPE_JPEG);
             ClientAnchor anchor = helper.createClientAnchor();

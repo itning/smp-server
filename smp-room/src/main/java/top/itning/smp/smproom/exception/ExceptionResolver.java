@@ -30,9 +30,9 @@ public class ExceptionResolver {
      */
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    public RestModel jsonErrorHandler(HttpServletResponse response, Exception e) {
+    public RestModel<?> jsonErrorHandler(HttpServletResponse response, Exception e) {
         logger.error("jsonErrorHandler->{}:{} {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        RestModel restModel = new RestModel();
+        RestModel<?> restModel = new RestModel<>();
         restModel.setCode(HttpStatus.SERVICE_UNAVAILABLE.value());
         restModel.setMsg(e.getMessage());
         response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
@@ -48,9 +48,9 @@ public class ExceptionResolver {
      */
     @ExceptionHandler(value = BaseException.class)
     @ResponseBody
-    public RestModel baseErrorHandler(HttpServletResponse response, BaseException e) {
+    public RestModel<?> baseErrorHandler(HttpServletResponse response, BaseException e) {
         logger.info("baseErrorHandler->{}:{}", e.getClass().getSimpleName(), e.getMessage());
-        RestModel restModel = new RestModel();
+        RestModel<?> restModel = new RestModel<>();
         restModel.setCode(e.getCode().value());
         restModel.setMsg(e.getMessage());
         response.setStatus(e.getCode().value());
@@ -66,9 +66,9 @@ public class ExceptionResolver {
      */
     @ExceptionHandler(value = MissingServletRequestParameterException.class)
     @ResponseBody
-    public RestModel missingServletRequestParameterExceptionHandler(HttpServletResponse response, MissingServletRequestParameterException e) {
+    public RestModel<?> missingServletRequestParameterExceptionHandler(HttpServletResponse response, MissingServletRequestParameterException e) {
         logger.info("missingServletRequestParameterExceptionHandler->{}", e.getMessage());
-        RestModel restModel = new RestModel();
+        RestModel<?> restModel = new RestModel<>();
         restModel.setCode(HttpServletResponse.SC_BAD_REQUEST);
         restModel.setMsg(e.getMessage());
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -84,9 +84,9 @@ public class ExceptionResolver {
      */
     @ExceptionHandler(value = NoHandlerFoundException.class)
     @ResponseBody
-    public RestModel noHandlerFoundErrorHandler(HttpServletResponse response, NoHandlerFoundException e) {
+    public RestModel<?> noHandlerFoundErrorHandler(HttpServletResponse response, NoHandlerFoundException e) {
         logger.info("noHandlerFoundErrorHandler->{}:{}", e.getClass().getSimpleName(), e.getMessage());
-        RestModel restModel = new RestModel();
+        RestModel<?> restModel = new RestModel<>();
         restModel.setCode(HttpStatus.NOT_FOUND.value());
         restModel.setMsg(e.getMessage());
         response.setStatus(HttpStatus.NOT_FOUND.value());

@@ -153,29 +153,13 @@ public class ClassUserServiceImpl implements ClassUserService {
 
     @Override
     public Page<StudentClassCheckMetaData> getAllStudentClassCheckMetaData(String studentClassId, LoginUser loginUser, Pageable pageable) {
-        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
-        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
-            // 不应出现该异常，因为用户传参必然存在
-            logger.error("user info is null,but system should not null");
-            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
-        });
-        if (!studentClass.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
-        }
+        StudentClass studentClass = getStudentClassAndCheckForbidden(studentClassId, loginUser);
         return studentClassCheckMetaDataDao.findAllByStudentClass(studentClass, pageable);
     }
 
     @Override
     public List<LeaveDTO> getStudentClassLeave(LoginUser loginUser, String studentClassId, Date whereDay) {
-        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
-        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
-            // 不应出现该异常，因为用户传参必然存在
-            logger.error("user info is null,but system should not null");
-            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
-        });
-        if (!studentClass.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
-        }
+        StudentClass studentClass = getStudentClassAndCheckForbidden(studentClassId, loginUser);
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClass);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return leaveClient.getAllLeave(DateUtils.date2LocalDateTime(whereDay).format(formatter))
@@ -233,5 +217,25 @@ public class ClassUserServiceImpl implements ClassUserService {
             }
         }
         return classNum.toUpperCase();
+    }
+
+    /**
+     * 获取学生班级并检查是否有横向越权
+     *
+     * @param studentClassId 学生班级ID
+     * @param loginUser      登录用户
+     * @return 学生班级
+     */
+    private StudentClass getStudentClassAndCheckForbidden(String studentClassId, LoginUser loginUser) {
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!studentClass.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
+        }
+        return studentClass;
     }
 }
