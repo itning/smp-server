@@ -86,9 +86,9 @@ public class ClassCheckController {
                                       @RequestParam("latitude") double latitude,
                                       @RequestParam("studentClassId") String studentClassId,
                                       @RequestParam("m") float m,
-                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                      @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
                                       @RequestParam("startTime") Date startTime,
-                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                      @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
                                       @RequestParam("endTime") Date endTime) {
         return RestModel.created(studentClassCheckService.newCheck(loginUser, longitude, latitude, studentClassId, m, startTime, endTime));
     }
