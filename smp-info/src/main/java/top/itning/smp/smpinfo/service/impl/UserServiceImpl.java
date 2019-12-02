@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.server.impl;
+package top.itning.smp.smpinfo.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -27,7 +27,7 @@ import top.itning.smp.smpinfo.entity.StudentUser;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.exception.FileException;
 import top.itning.smp.smpinfo.exception.NullFiledException;
-import top.itning.smp.smpinfo.server.UserService;
+import top.itning.smp.smpinfo.service.UserService;
 import top.itning.smp.smpinfo.util.IdCardUtils;
 import top.itning.smp.smpinfo.util.OrikaUtils;
 
@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUser(StudentUserDTO studentUserDTO) {
-        if (StringUtils.isBlank(studentUserDTO.getId())) {
+        if (studentUserDTO == null || StringUtils.isBlank(studentUserDTO.getId())) {
             throw new NullFiledException("ID为空", HttpStatus.BAD_REQUEST);
         }
         if (studentUserDTO.getIdCard() != null) {
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delUser(String userId) {
-        if (!userDao.existsById(userId) || !studentUserDao.existsById(userId)) {
+        if (StringUtils.isBlank(userId) || !userDao.existsById(userId) || !studentUserDao.existsById(userId)) {
             throw new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST);
         }
         studentUserDao.deleteById(userId);
@@ -226,7 +226,7 @@ public class UserServiceImpl implements UserService {
         String originalFilename = file.getOriginalFilename();
         Workbook workbook;
         String fileType;
-        if (originalFilename == null) {
+        if (StringUtils.isBlank(originalFilename)) {
             fileType = XLSX_FILE;
         } else {
             fileType = originalFilename.substring(originalFilename.lastIndexOf("."));

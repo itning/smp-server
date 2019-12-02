@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.entity.RestModel;
-import top.itning.smp.smpinfo.server.ApartmentService;
+import top.itning.smp.smpinfo.service.ApartmentService;
 
 /**
  * @author itning

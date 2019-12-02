@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.server;
+package top.itning.smp.smpinfo.service;
 
 import top.itning.smp.smpinfo.entity.Apartment;
 

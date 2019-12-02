@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.server;
+package top.itning.smp.smpinfo.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

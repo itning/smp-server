@@ -1,4 +1,4 @@
-package top.itning.smp.smpinfo.server.impl;
+package top.itning.smp.smpinfo.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,7 @@ import top.itning.smp.smpinfo.dao.StudentUserDao;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.exception.NotInLineWithBusinessLogicException;
 import top.itning.smp.smpinfo.exception.NullFiledException;
-import top.itning.smp.smpinfo.server.ApartmentService;
+import top.itning.smp.smpinfo.service.ApartmentService;
 
 import java.util.Date;
 import java.util.List;
@@ -36,7 +36,7 @@ public class ApartmentServiceImpl implements ApartmentService {
 
     @Override
     public void updateApartment(Apartment apartment) {
-        if (StringUtils.isBlank(apartment.getId())) {
+        if (apartment == null || StringUtils.isBlank(apartment.getId())) {
             throw new NullFiledException("ID为空", HttpStatus.BAD_REQUEST);
         }
         Apartment a = apartmentDao.findById(apartment.getId()).orElseThrow(() -> new NullFiledException("公寓不存在", HttpStatus.BAD_REQUEST));

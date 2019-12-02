@@ -11,7 +11,7 @@ import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.security.LoginUser;
 import top.itning.smp.smpinfo.security.MustCounselorLogin;
-import top.itning.smp.smpinfo.server.UserService;
+import top.itning.smp.smpinfo.service.UserService;
 
 import java.io.IOException;
 import java.util.List;
