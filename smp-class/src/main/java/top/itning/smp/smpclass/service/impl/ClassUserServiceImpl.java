@@ -168,7 +168,7 @@ public class ClassUserServiceImpl implements ClassUserService {
                     if (studentClassUserList == null || studentClassUserList.isEmpty()) {
                         return false;
                     }
-                    return studentClassUserList.stream().anyMatch(studentClassUser -> studentClassUser.getUser().getId().equals(leaveDTO.getStudentUser().getId()));
+                    return studentClassUserList.parallelStream().anyMatch(studentClassUser -> studentClassUser.getUser().getId().equals(leaveDTO.getStudentUser().getId()));
                 })
                 .collect(Collectors.toList());
     }
