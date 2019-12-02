@@ -163,12 +163,14 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                     studentClassCheckDto.setCheckTime(null);
                     studentClassCheckDto.setGmtCreate(studentClassUser.getGmtCreate());
                     studentClassCheckDto.setGmtModified(studentClassUser.getGmtModified());
-                    studentClassCheckList.stream().findAny().ifPresent(studentClassCheck -> {
-                        studentClassCheckDto.setCheck(true);
-                        studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
-                        studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
-                        studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
-                    });
+                    studentClassCheckList.stream()
+                            .filter(studentClassCheck -> studentClassUser.getUser().getId().equals(studentClassCheck.getUser().getId()))
+                            .forEach(studentClassCheck -> {
+                                studentClassCheckDto.setCheck(true);
+                                studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
+                                studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
+                                studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
+                            });
                     return studentClassCheckDto;
                 })
                 .collect(Collectors.toList());
