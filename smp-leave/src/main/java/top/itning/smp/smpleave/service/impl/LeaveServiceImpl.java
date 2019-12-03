@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpleave.client.InfoClient;
@@ -215,8 +216,8 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public long countInEffectLeaves(Date date) {
-        return leaveDao.count(getLeaveSpecification(date));
+    public long countInEffectLeaves(Date date, String username) {
+        return leaveDao.count(getLeaveSpecification(date, username));
     }
 
     @Override
@@ -238,8 +239,8 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public List<LeaveDTO> getLeaves(Date whereDay) {
-        return leaveDao.findAll(getLeaveSpecification(whereDay))
+    public List<LeaveDTO> getLeaves(Date whereDay, @Nullable String username) {
+        return leaveDao.findAll(getLeaveSpecification(whereDay, username))
                 .stream()
                 .map(mapLeave2LeaveDto())
                 .collect(Collectors.toList());
@@ -251,7 +252,7 @@ public class LeaveServiceImpl implements LeaveService {
      * @param whereDay 那天开始
      * @return Specification
      */
-    private Specification<Leave> getLeaveSpecification(Date whereDay) {
+    private Specification<Leave> getLeaveSpecification(Date whereDay, @Nullable String username) {
         return (Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             Tuple2<Date, Date> dateRange = getDateRange(whereDay);
@@ -261,6 +262,12 @@ public class LeaveServiceImpl implements LeaveService {
                     cb.equal(root.get("leaveType"), LeaveType.ROOM_LEAVE),
                     cb.equal(root.get("leaveType"), LeaveType.ALL_LEAVE)));
             list.add(cb.equal(root.get("status"), true));
+            if (username != null) {
+                User user = infoClient.getUserInfoByUserName(username).orElseThrow(() -> new NullFiledException("用户不存在", HttpStatus.NOT_FOUND));
+                Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
+                Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+                list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+            }
             Predicate[] p = new Predicate[list.size()];
             return cb.and(list.toArray(p));
         };

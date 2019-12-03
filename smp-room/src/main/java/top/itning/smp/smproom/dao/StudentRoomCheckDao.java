@@ -3,6 +3,7 @@ package top.itning.smp.smproom.dao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.entity.User;
 
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * @author itning
  */
-public interface StudentRoomCheckDao extends JpaRepository<StudentRoomCheck, String> {
+public interface StudentRoomCheckDao extends JpaRepository<StudentRoomCheck, String>, JpaSpecificationExecutor<StudentRoomCheck> {
     /**
      * 根据用户查询寝室打卡信息
      *

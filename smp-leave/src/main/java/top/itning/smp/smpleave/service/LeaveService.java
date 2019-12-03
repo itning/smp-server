@@ -2,6 +2,7 @@ package top.itning.smp.smpleave.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import top.itning.smp.smpleave.dto.LeaveDTO;
 import top.itning.smp.smpleave.dto.SearchDTO;
 import top.itning.smp.smpleave.entity.Leave;
@@ -68,10 +69,11 @@ public interface LeaveService {
     /**
      * 获取正在生效的请假信息数量
      *
-     * @param date 目前日期
+     * @param date     目前日期
+     * @param username 导员用户名
      * @return 正在生效的请假信息数量
      */
-    long countInEffectLeaves(Date date);
+    long countInEffectLeaves(Date date, String username);
 
     /**
      * 学生今天是否请假了
@@ -86,9 +88,10 @@ public interface LeaveService {
      * 获取所有请假信息
      *
      * @param whereDay 哪天
+     * @param username 导员用户名，可能为空；空的话全查
      * @return 所有请假信息
      */
-    List<LeaveDTO> getLeaves(Date whereDay);
+    List<LeaveDTO> getLeaves(Date whereDay, @Nullable String username);
 
     /**
      * 分页获取学生的请假信息

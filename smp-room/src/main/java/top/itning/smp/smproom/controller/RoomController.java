@@ -13,7 +13,7 @@ import top.itning.smp.smproom.entity.RestModel;
 import top.itning.smp.smproom.security.LoginUser;
 import top.itning.smp.smproom.security.MustCounselorLogin;
 import top.itning.smp.smproom.security.MustStudentLogin;
-import top.itning.smp.smproom.service.AppMetaDataService;
+import top.itning.smp.smproom.service.RoomCheckMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +30,12 @@ import java.util.Date;
 @RestController
 public class RoomController {
     private final RoomService roomService;
-    private final AppMetaDataService appMetaDataService;
+    private final RoomCheckMetaDataService roomCheckMetaDataService;
 
     @Autowired
-    public RoomController(RoomService roomService, AppMetaDataService appMetaDataService) {
+    public RoomController(RoomService roomService, RoomCheckMetaDataService roomCheckMetaDataService) {
         this.roomService = roomService;
-        this.appMetaDataService = appMetaDataService;
+        this.roomCheckMetaDataService = roomCheckMetaDataService;
     }
 
     @InitBinder
@@ -65,7 +65,7 @@ public class RoomController {
      */
     @GetMapping("/allow_check")
     public ResponseEntity<?> allowCheck(@MustStudentLogin LoginUser loginUser) {
-        return RestModel.ok(appMetaDataService.isNowCanRoomCheck());
+        return RestModel.ok(roomCheckMetaDataService.isNowCanRoomCheck(loginUser));
     }
 
     /**
@@ -75,7 +75,7 @@ public class RoomController {
      */
     @GetMapping("/check_date")
     public ResponseEntity<?> getCheckDate(@MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(appMetaDataService.getStudentCheckDate());
+        return RestModel.ok(roomCheckMetaDataService.getStudentCheckDate(loginUser));
     }
 
     /**
@@ -86,7 +86,7 @@ public class RoomController {
     @PostMapping("/check_date")
     public ResponseEntity<?> getCheckDate(@MustCounselorLogin LoginUser loginUser,
                                           String dateString) {
-        return RestModel.created(appMetaDataService.upStudentCheckDate(dateString));
+        return RestModel.created(roomCheckMetaDataService.upStudentCheckDate(dateString, loginUser));
     }
 
     /**
@@ -96,7 +96,7 @@ public class RoomController {
      */
     @GetMapping("/gps_range")
     public ResponseEntity<?> getGpsRangeInfo(@MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(appMetaDataService.getGpsRange());
+        return RestModel.ok(roomCheckMetaDataService.getGpsRange(loginUser, false));
     }
 
     /**
@@ -106,7 +106,7 @@ public class RoomController {
      */
     @PostMapping("/gps_range")
     public ResponseEntity<?> upGpsRangeInfo(@MustCounselorLogin LoginUser loginUser, String gps) {
-        return RestModel.created(appMetaDataService.upGpsRange(gps));
+        return RestModel.created(roomCheckMetaDataService.upGpsRange(gps, loginUser));
     }
 
     /**
@@ -138,7 +138,7 @@ public class RoomController {
         if (whereDay == null) {
             whereDay = new Date();
         }
-        return RestModel.ok(roomService.checkAll(whereDay));
+        return RestModel.ok(roomService.checkAll(whereDay, loginUser));
     }
 
     /**
@@ -149,13 +149,20 @@ public class RoomController {
     @GetMapping("/countShouldRoomCheck")
     public ResponseEntity<?> countShouldRoomCheck(@MustCounselorLogin LoginUser loginUser,
                                                   @RequestParam("date") String date) {
-        return RestModel.ok(roomService.countShouldRoomCheck(date));
+        return RestModel.ok(roomService.countShouldRoomCheck(date, loginUser));
     }
 
+    /**
+     * 导出学生寝室打卡EXCEL
+     *
+     * @param whereDay 哪天
+     * @param response HttpServletResponse
+     * @throws IOException 可能出现的异常
+     */
     @GetMapping("/export_room/{whereDay}")
     public void exportRoomInfo(@PathVariable("whereDay") Date whereDay,
                                @MustCounselorLogin LoginUser loginUser,
                                HttpServletResponse response) throws IOException {
-        roomService.export(response.getOutputStream(), whereDay);
+        roomService.export(response.getOutputStream(), whereDay, loginUser);
     }
 }

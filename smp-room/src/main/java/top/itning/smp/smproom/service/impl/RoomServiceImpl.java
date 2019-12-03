@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,22 +21,27 @@ import top.itning.smp.smproom.client.entity.StudentUserDTO;
 import top.itning.smp.smproom.config.CustomProperties;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
+import top.itning.smp.smproom.entity.StudentUser;
 import top.itning.smp.smproom.entity.User;
 import top.itning.smp.smproom.exception.GpsException;
 import top.itning.smp.smproom.exception.IllegalCheckException;
 import top.itning.smp.smproom.exception.SavedException;
 import top.itning.smp.smproom.exception.UserNameDoesNotExistException;
 import top.itning.smp.smproom.security.LoginUser;
-import top.itning.smp.smproom.service.AppMetaDataService;
+import top.itning.smp.smproom.service.RoomCheckMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
 import top.itning.smp.smproom.util.DateUtils;
 import top.itning.smp.smproom.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -55,15 +61,15 @@ public class RoomServiceImpl implements RoomService {
     private final InfoClient infoClient;
     private final LeaveClient leaveClient;
     private final CustomProperties customProperties;
-    private final AppMetaDataService appMetaDataService;
+    private final RoomCheckMetaDataService roomCheckMetaDataService;
 
     @Autowired
-    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, AppMetaDataService appMetaDataService) {
+    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, RoomCheckMetaDataService roomCheckMetaDataService) {
         this.studentRoomCheckDao = studentRoomCheckDao;
         this.infoClient = infoClient;
         this.leaveClient = leaveClient;
         this.customProperties = customProperties;
-        this.appMetaDataService = appMetaDataService;
+        this.roomCheckMetaDataService = roomCheckMetaDataService;
     }
 
     @Override
@@ -86,7 +92,7 @@ public class RoomServiceImpl implements RoomService {
         if (studentRoomCheckDao.existsByUserAndCheckTimeBetween(user, dateRange.getT1(), dateRange.getT2())) {
             throw new IllegalCheckException("您今天已经打过卡了，不能重复打卡");
         }
-        if (!GpsUtils.isPtInPoly(longitude, latitude, appMetaDataService.getGpsRange())) {
+        if (!GpsUtils.isPtInPoly(longitude, latitude, roomCheckMetaDataService.getGpsRange(loginUser, true))) {
             throw new IllegalCheckException("打卡所在位置不在辅导员指定的区域内");
         }
         StudentRoomCheck studentRoomCheck = new StudentRoomCheck();
@@ -108,34 +114,47 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<StudentRoomCheck> checkAll(Date whereDay) {
-        Tuple2<Date, Date> dateRange = getDateRange(whereDay);
-        return studentRoomCheckDao.findAllByCheckTimeBetweenOrderByCheckTimeDesc(dateRange.getT1(), dateRange.getT2());
+    public List<StudentRoomCheck> checkAll(Date whereDay, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
+        return studentRoomCheckDao.findAll((Specification<StudentRoomCheck>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+
+            Tuple2<Date, Date> dateRange = getDateRange(whereDay);
+            list.add(cb.between(root.get("checkTime"), dateRange.getT1(), dateRange.getT2()));
+
+            Join<StudentRoomCheck, User> userJoin = root.join("user", JoinType.INNER);
+            Join<User, StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+
+            query.orderBy(cb.desc(root.get("checkTime")));
+
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        });
     }
 
     @Override
-    public Tuple2<Long, Long> countShouldRoomCheck(String date) {
-        long countStudent = infoClient.countStudent();
-        long countInEffectLeaves = leaveClient.countInEffectLeaves(date);
+    public Tuple2<Long, Long> countShouldRoomCheck(String date, LoginUser loginUser) {
+        long countStudent = infoClient.countStudent(loginUser.getUsername());
+        long countInEffectLeaves = leaveClient.countInEffectLeaves(date, loginUser.getUsername());
         logger.debug("countStudent {} countInEffectLeaves {}", countStudent, countInEffectLeaves);
         return new Tuple2<>(countStudent, countInEffectLeaves);
     }
 
     @Override
-    public void export(OutputStream outputStream, Date whereDay) throws IOException {
+    public void export(OutputStream outputStream, Date whereDay, LoginUser loginUser) throws IOException {
         XSSFWorkbook sheets = new XSSFWorkbook();
         XSSFSheet sheet = sheets.createSheet();
         XSSFRow headerRow = sheet.createRow(0);
         CreationHelper helper = sheets.getCreationHelper();
         XSSFDrawing drawing = sheet.createDrawingPatriarch();
         initExportHeader(headerRow);
-        Tuple2<Date, Date> dateRange = getDateRange(whereDay);
         // 所有学生
-        List<StudentUserDTO> allUser = infoClient.getAllUser();
+        List<StudentUserDTO> allUser = infoClient.getAllUser(loginUser.getUsername());
         // 所有打卡同学
-        List<StudentRoomCheck> studentRoomCheckList = studentRoomCheckDao.findAllByCheckTimeBetweenOrderByCheckTimeDesc(dateRange.getT1(), dateRange.getT2());
+        List<StudentRoomCheck> studentRoomCheckList = this.checkAll(whereDay, loginUser);
         // 所有请假同学
-        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(whereDay, DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(whereDay, DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1), loginUser.getUsername());
         // 所有未打卡同学（排除请假的同学）
         List<StudentUserDTO> unCheckList = allUser
                 .parallelStream()

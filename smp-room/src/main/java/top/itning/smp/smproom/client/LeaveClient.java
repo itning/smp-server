@@ -18,11 +18,12 @@ public interface LeaveClient {
     /**
      * 获取正在生效的请假信息数量
      *
-     * @param date 哪天开始
+     * @param date     哪天开始
+     * @param username 导员用户名
      * @return 正在生效的请假信息数量
      */
     @GetMapping("/internal/leaves/inEffect/count")
-    long countInEffectLeaves(@RequestParam("date") String date);
+    long countInEffectLeaves(@RequestParam("date") String date, @RequestParam("username") String username);
 
     /**
      * 学生今天是否请假了
@@ -38,8 +39,9 @@ public interface LeaveClient {
      * 获取请假信息
      *
      * @param whereDay 哪天
+     * @param username 导员用户名
      * @return 所有请假信息
      */
     @GetMapping("/internal/leaves")
-    List<LeaveDTO> getAllLeave(@RequestParam("whereDay") String whereDay);
+    List<LeaveDTO> getAllLeave(@RequestParam("whereDay") String whereDay, @RequestParam String username);
 }

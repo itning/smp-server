@@ -43,25 +43,28 @@ public interface RoomService {
      * 则范围为
      * 2019/11/23 00:00:00:000 - 2019/11/24 00:00:00:000
      *
-     * @param whereDay 哪天
+     * @param whereDay  哪天
+     * @param loginUser 登录用户
      * @return 打卡信息
      */
-    List<StudentRoomCheck> checkAll(Date whereDay);
+    List<StudentRoomCheck> checkAll(Date whereDay, LoginUser loginUser);
 
     /**
      * 计算应该打卡的学生数量
      *
-     * @param date 日期
+     * @param date      日期
+     * @param loginUser 登录用户
      * @return 应打卡学生数量 T1 学生总数 T2 请假生效中人数
      */
-    Tuple2<Long, Long> countShouldRoomCheck(String date);
+    Tuple2<Long, Long> countShouldRoomCheck(String date, LoginUser loginUser);
 
     /**
      * 导出Excel
      *
      * @param outputStream OutputStream
-     * @param whereDay   日期
+     * @param whereDay     日期
+     * @param loginUser    登录用户
      * @throws IOException 导出异常
      */
-    void export(OutputStream outputStream, Date whereDay) throws IOException;
+    void export(OutputStream outputStream, Date whereDay, LoginUser loginUser) throws IOException;
 }

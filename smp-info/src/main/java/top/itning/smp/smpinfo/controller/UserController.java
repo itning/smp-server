@@ -122,20 +122,22 @@ public class UserController {
     /**
      * 计算学生人数
      *
+     * @param username 导员用户名
      * @return 学生数量
      */
-    @GetMapping("/internal/student_user/count")
-    public long countStudent() {
-        return userService.countStudent();
+    @GetMapping("/internal/student_user/count/{username}")
+    public long countStudent(@PathVariable String username) {
+        return userService.countStudent(username);
     }
 
     /**
      * 获取所有学生信息
      *
+     * @param username 导员用户名
      * @return 学生信息
      */
     @GetMapping("/internal/users")
-    public List<StudentUserDTO> getAllUser() {
-        return userService.getAllUser();
+    public List<StudentUserDTO> getAllUser(@RequestParam String username) {
+        return userService.getAllUser(username);
     }
 }

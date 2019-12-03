@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.entity.StudentUser;
 
+import java.util.List;
+
 /**
  * @author itning
  */
@@ -37,4 +39,20 @@ public interface StudentUserDao extends JpaRepository<StudentUser, String>, JpaS
      */
     @Query(value = "select * from student_user s where s.apartment_id=?1 and s.room_num = ?2 and s.bed_num = ?3 limit 1", nativeQuery = true)
     StudentUser findByApartmentAndRoomNumAndBedNum(Apartment apartment, String roomNum, String bedNum);
+
+    /**
+     * 根据导员ID计算学生人数
+     *
+     * @param belongCounselorId 导员ID
+     * @return 学生人数
+     */
+    long countAllByBelongCounselorId(String belongCounselorId);
+
+    /**
+     * 根据导员ID查询全部学生信息
+     *
+     * @param belongCounselorId 导员ID
+     * @return 全部学生信息
+     */
+    List<StudentUser> findAllByBelongCounselorId(String belongCounselorId);
 }

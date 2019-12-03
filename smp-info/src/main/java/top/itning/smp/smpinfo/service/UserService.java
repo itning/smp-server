@@ -79,14 +79,16 @@ public interface UserService {
     /**
      * 计算学生数量
      *
+     * @param username 导员用户名
      * @return 学生数量
      */
-    long countStudent();
+    long countStudent(String username);
 
     /**
      * 获取所有用户
      *
+     * @param username 导员用户名
      * @return 所有用户
      */
-    List<StudentUserDTO> getAllUser();
+    List<StudentUserDTO> getAllUser(String username);
 }

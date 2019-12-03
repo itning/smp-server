@@ -1,8 +1,6 @@
 package top.itning.smp.smproom.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -16,10 +14,8 @@ import java.util.Date;
  * @author itning
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Entity(name = "app_meta_data")
-public class AppMetaData implements Serializable {
+@Entity(name = "student_room_check_meta_data")
+public class StudentRoomCheckMetaData implements Serializable {
     /**
      * 学生寝室打卡时间
      */
@@ -39,6 +35,11 @@ public class AppMetaData implements Serializable {
      */
     @Column(nullable = false, columnDefinition = "text")
     private String value;
+    /**
+     * 所属辅导员的ID
+     */
+    @Column(nullable = false, columnDefinition = "char(36)", length = 36)
+    private String belongCounselorId;
     /**
      * 创建时间
      */

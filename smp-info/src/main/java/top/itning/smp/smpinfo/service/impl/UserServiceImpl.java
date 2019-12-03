@@ -363,13 +363,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long countStudent() {
-        return studentUserDao.count();
+    public long countStudent(String username) {
+        User user = userDao.findByUsername(username);
+        if (user == null) {
+            throw new NullFiledException("用户不存在", HttpStatus.NOT_FOUND);
+        }
+        return studentUserDao.countAllByBelongCounselorId(user.getId());
     }
 
     @Override
-    public List<StudentUserDTO> getAllUser() {
-        return studentUserDao.findAll().stream()
+    public List<StudentUserDTO> getAllUser(String username) {
+        User daoByUsername = userDao.findByUsername(username);
+        return studentUserDao.findAllByBelongCounselorId(daoByUsername.getId()).stream()
                 .map(studentUser -> {
                     User user = userDao.findById(studentUser.getId()).orElse(null);
                     return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);

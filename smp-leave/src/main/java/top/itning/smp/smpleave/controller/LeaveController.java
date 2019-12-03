@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpleave.dto.LeaveDTO;
@@ -169,11 +170,12 @@ public class LeaveController {
     /**
      * 获取正在生效的请假信息数量
      *
+     * @param username 导员用户名
      * @return 正在生效的请假信息数量
      */
     @GetMapping("/internal/leaves/inEffect/count")
-    public long inEffectLeaves(@RequestParam Date date) {
-        return leaveService.countInEffectLeaves(date);
+    public long inEffectLeaves(@RequestParam Date date, @RequestParam String username) {
+        return leaveService.countInEffectLeaves(date, username);
     }
 
     /**
@@ -192,10 +194,12 @@ public class LeaveController {
      * 获取请假信息
      *
      * @param whereDay 哪天
+     * @param username 导员用户名，如果为空则不要这个查询条件
      * @return 所有请假信息
      */
     @GetMapping("/internal/leaves")
-    public List<LeaveDTO> getAllLeave(@RequestParam("whereDay") Date whereDay) {
-        return leaveService.getLeaves(whereDay);
+    public List<LeaveDTO> getAllLeave(@RequestParam("whereDay") Date whereDay,
+                                      @Nullable String username) {
+        return leaveService.getLeaves(whereDay, username);
     }
 }
