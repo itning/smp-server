@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpinfo.dto.StudentUserDTO;
 import top.itning.smp.smpinfo.dto.UpFileDTO;
 import top.itning.smp.smpinfo.entity.User;
+import top.itning.smp.smpinfo.security.LoginUser;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,42 +18,47 @@ public interface UserService {
     /**
      * 获取所有用户
      *
-     * @param pageable 分页信息
+     * @param pageable  分页信息
+     * @param loginUser 登录用户
      * @return 用户
      */
-    Page<StudentUserDTO> getAllUser(Pageable pageable);
+    Page<StudentUserDTO> getAllUser(Pageable pageable, LoginUser loginUser);
 
     /**
      * 模糊搜索用户
      *
-     * @param key      关键字
-     * @param pageable 分页数据
+     * @param key       关键字
+     * @param pageable  分页数据
+     * @param loginUser 登录用户
      * @return 用户
      */
-    Page<StudentUserDTO> searchUsers(String key, Pageable pageable);
+    Page<StudentUserDTO> searchUsers(String key, Pageable pageable, LoginUser loginUser);
 
     /**
      * 更新用户
      *
      * @param studentUserDTO 用户
+     * @param loginUser      登录用户
      */
-    void updateUser(StudentUserDTO studentUserDTO);
+    void updateUser(StudentUserDTO studentUserDTO, LoginUser loginUser);
 
     /**
      * 删除用户
      *
-     * @param userId 用户ID
+     * @param userId    用户ID
+     * @param loginUser 登录用户
      */
-    void delUser(String userId);
+    void delUser(String userId, LoginUser loginUser);
 
     /**
      * 上传文件
      *
-     * @param file 文件
+     * @param file      文件
+     * @param loginUser 登录用户
      * @return 上传信息
      * @throws IOException 存储异常
      */
-    UpFileDTO upFile(MultipartFile file) throws IOException;
+    UpFileDTO upFile(MultipartFile file, LoginUser loginUser) throws IOException;
 
     /**
      * 根据用户名获取用户

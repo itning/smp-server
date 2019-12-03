@@ -40,7 +40,7 @@ public class UserController {
     public ResponseEntity<?> getAllUserInfo(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                                     Pageable pageable,
                                             @MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(userService.getAllUser(pageable));
+        return RestModel.ok(userService.getAllUser(pageable, loginUser));
     }
 
     /**
@@ -56,7 +56,7 @@ public class UserController {
                                                  direction = Sort.Direction.DESC)
                                                  Pageable pageable,
                                          @MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(userService.searchUsers(key, pageable));
+        return RestModel.ok(userService.searchUsers(key, pageable, loginUser));
     }
 
     /**
@@ -68,7 +68,7 @@ public class UserController {
     @PatchMapping("/user")
     public ResponseEntity<?> updateUser(@RequestBody StudentUserDTO studentUserDTO,
                                         @MustCounselorLogin LoginUser loginUser) {
-        userService.updateUser(studentUserDTO);
+        userService.updateUser(studentUserDTO, loginUser);
         return RestModel.noContent();
     }
 
@@ -81,7 +81,7 @@ public class UserController {
     @DeleteMapping("/user/{id}")
     public ResponseEntity<?> delUser(@PathVariable String id,
                                      @MustCounselorLogin LoginUser loginUser) {
-        userService.delUser(id);
+        userService.delUser(id, loginUser);
         return RestModel.noContent();
     }
 
@@ -94,7 +94,7 @@ public class UserController {
     @PostMapping("/user/file")
     public ResponseEntity<?> newUser(@RequestParam("file") MultipartFile file,
                                      @MustCounselorLogin LoginUser loginUser) throws IOException {
-        return RestModel.created(userService.upFile(file));
+        return RestModel.created(userService.upFile(file, loginUser));
     }
 
     /**

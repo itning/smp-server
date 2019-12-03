@@ -27,6 +27,8 @@ import top.itning.smp.smpinfo.entity.StudentUser;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.exception.FileException;
 import top.itning.smp.smpinfo.exception.NullFiledException;
+import top.itning.smp.smpinfo.exception.SecurityException;
+import top.itning.smp.smpinfo.security.LoginUser;
 import top.itning.smp.smpinfo.service.UserService;
 import top.itning.smp.smpinfo.util.IdCardUtils;
 import top.itning.smp.smpinfo.util.OrikaUtils;
@@ -127,12 +129,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<StudentUserDTO> getAllUser(Pageable pageable) {
+    public Page<StudentUserDTO> getAllUser(Pageable pageable, LoginUser loginUser) {
+        User savedUser = userDao.findByUsername(loginUser.getUsername());
         Sort.Order order = pageable.getSort().toList().get(0);
         Page<StudentUserDTO> page = userDao.findAll((Specification<User>) (root, query, cb) -> {
             Join<User, StudentUser> studentUserJoin = root.join("studentUser", JoinType.INNER);
             order(query, cb, order, root, studentUserJoin, "gmtModified", "name", "tel", "email");
-            return cb.and(cb.equal(root.get("role"), Role.withStudentUser()));
+            return cb.and(
+                    cb.equal(root.get("role"), Role.withStudentUser()),
+                    cb.equal(studentUserJoin.get("belongCounselorId"), savedUser.getId())
+            );
         }, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()))
                 .map(user -> {
                     StudentUser studentUser = studentUserDao.findById(user.getId()).orElse(null);
@@ -142,7 +148,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<StudentUserDTO> searchUsers(String key, Pageable pageable) {
+    public Page<StudentUserDTO> searchUsers(String key, Pageable pageable, LoginUser loginUser) {
+        User savedUser = userDao.findByUsername(loginUser.getUsername());
         Sort.Order order = pageable.getSort().toList().get(0);
         Page<StudentUserDTO> userPage = userDao.findAll((Specification<User>) (root, query, cb) -> {
                     List<Predicate> list = new ArrayList<>();
@@ -154,6 +161,7 @@ public class UserServiceImpl implements UserService {
                         list.add(cb.like(root.get("name"), "%" + key + "%"));
                     }
                     list.add(cb.equal(root.get("role"), Role.withStudentUser()));
+                    list.add(cb.equal(studentUserJoin.get("belongCounselorId"), savedUser.getId()));
 
                     order(query, cb, order, root, studentUserJoin, "gmtModified", "name", "tel", "email");
 
@@ -168,7 +176,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(StudentUserDTO studentUserDTO) {
+    public void updateUser(StudentUserDTO studentUserDTO, LoginUser loginUser) {
         if (studentUserDTO == null || StringUtils.isBlank(studentUserDTO.getId())) {
             throw new NullFiledException("ID为空", HttpStatus.BAD_REQUEST);
         }
@@ -181,6 +189,11 @@ public class UserServiceImpl implements UserService {
         StudentUser savedStudentUser = studentUserDao
                 .findById(studentUserDTO.getId())
                 .orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST));
+        User loginUserEntity = userDao.findByUsername(loginUser.getUsername());
+        if (!loginUserEntity.getId().equals(savedStudentUser.getBelongCounselorId())) {
+            // 不是这个辅导员的学生
+            throw new SecurityException("更新失败", HttpStatus.FORBIDDEN);
+        }
         User savedUser = userDao
                 .findById(studentUserDTO.getId())
                 .orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST));
@@ -213,16 +226,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delUser(String userId) {
-        if (StringUtils.isBlank(userId) || !userDao.existsById(userId) || !studentUserDao.existsById(userId)) {
+    public void delUser(String userId, LoginUser loginUser) {
+        Optional<StudentUser> studentUserOptional = studentUserDao.findById(userId);
+        if (StringUtils.isBlank(userId) || !userDao.existsById(userId) || !studentUserOptional.isPresent()) {
             throw new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST);
         }
-        studentUserDao.deleteById(userId);
+        User loginUserEntity = userDao.findByUsername(loginUser.getUsername());
+        if (!loginUserEntity.getId().equals(studentUserOptional.get().getBelongCounselorId())) {
+            // 不是这个辅导员的学生
+            throw new SecurityException("删除失败", HttpStatus.FORBIDDEN);
+        }
+        studentUserDao.delete(studentUserOptional.get());
         userDao.deleteById(userId);
     }
 
     @Override
-    public UpFileDTO upFile(MultipartFile file) throws IOException {
+    public UpFileDTO upFile(MultipartFile file, LoginUser loginUser) throws IOException {
         String originalFilename = file.getOriginalFilename();
         Workbook workbook;
         String fileType;
@@ -241,6 +260,7 @@ public class UserServiceImpl implements UserService {
         if (workbook.getNumberOfSheets() < 1) {
             throw new FileException("工作簿数量错误：" + workbook.getNumberOfSheets(), HttpStatus.BAD_REQUEST);
         }
+        User counselorUser = userDao.findByUsername(loginUser.getUsername());
         Role role = new Role();
         role.setId(STUDENT_ROLE_ID);
         Set<String> set = new TreeSet<>();
@@ -313,6 +333,7 @@ public class UserServiceImpl implements UserService {
                 User savedUser = userDao.save(user);
                 StudentUser studentUser = OrikaUtils.a2b(studentUserDTO, StudentUser.class);
                 studentUser.setId(savedUser.getId());
+                studentUser.setBelongCounselorId(counselorUser.getId());
                 studentUserDao.save(studentUser);
             });
             long count = studentUserDao.count();

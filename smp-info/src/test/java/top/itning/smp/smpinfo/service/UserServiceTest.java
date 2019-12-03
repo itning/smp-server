@@ -22,6 +22,7 @@ import top.itning.smp.smpinfo.entity.Role;
 import top.itning.smp.smpinfo.entity.StudentUser;
 import top.itning.smp.smpinfo.entity.User;
 import top.itning.smp.smpinfo.exception.NullFiledException;
+import top.itning.smp.smpinfo.security.LoginUser;
 import top.itning.utils.uuid.UUIDs;
 
 import java.io.IOException;
@@ -42,27 +43,62 @@ class UserServiceTest {
 
     @Test
     void getAllUser() {
+        User user = new User();
+        user.setName("测试用名字");
+        user.setTel("15636359874");
+        user.setEmail("itning@itning.top");
+        user.setUsername("testusername");
+        user.setPassword("testpassword");
+        user.setRole(Role.withStudentUser());
+        User saved = userDao.save(user);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUsername(saved.getUsername());
         Assertions.assertNotNull(userService.getAllUser());
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "gmtModified"));
-        Assertions.assertNotNull(userService.getAllUser(pageable));
+        Assertions.assertNotNull(userService.getAllUser(pageable, loginUser));
+        userDao.delete(saved);
     }
 
     @Test
     void searchUsers() {
+        User user = new User();
+        user.setName("测试用名字");
+        user.setTel("15636359874");
+        user.setEmail("itning@itning.top");
+        user.setUsername("testusername");
+        user.setPassword("testpassword");
+        user.setRole(Role.withStudentUser());
+        User saved = userDao.save(user);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUsername(saved.getUsername());
+
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "gmtModified"));
-        Assertions.assertNotNull(userService.searchUsers("", pageable));
-        Assertions.assertNotNull(userService.searchUsers(null, pageable));
-        Assertions.assertNotNull(userService.searchUsers("1", pageable));
+        Assertions.assertNotNull(userService.searchUsers("", pageable, loginUser));
+        Assertions.assertNotNull(userService.searchUsers(null, pageable, loginUser));
+        Assertions.assertNotNull(userService.searchUsers("1", pageable, loginUser));
+
+        userDao.delete(saved);
     }
 
     @Test
     void updateUser() {
-        Assertions.assertThrows(NullFiledException.class, () -> userService.updateUser(null));
-        Assertions.assertThrows(NullFiledException.class, () -> userService.updateUser(new StudentUserDTO()));
+        User u = new User();
+        u.setName("测试用名字");
+        u.setTel("15636359874");
+        u.setEmail("itning@itning.top");
+        u.setUsername("testusername");
+        u.setPassword("testpassword");
+        u.setRole(Role.withStudentUser());
+        User saveddd = userDao.save(u);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUsername(saveddd.getUsername());
+
+        Assertions.assertThrows(NullFiledException.class, () -> userService.updateUser(null, loginUser));
+        Assertions.assertThrows(NullFiledException.class, () -> userService.updateUser(new StudentUserDTO(), loginUser));
         Assertions.assertThrows(NullFiledException.class, () -> {
             StudentUserDTO studentUserDTO = new StudentUserDTO();
             studentUserDTO.setId(UUIDs.get());
-            userService.updateUser(studentUserDTO);
+            userService.updateUser(studentUserDTO, loginUser);
         });
 
         User user = new User();
@@ -105,7 +141,7 @@ class UserServiceTest {
         studentUserDTO.setStudentId("22222");
         studentUserDTO.setIdCard("232301199708085433");
 
-        userService.updateUser(studentUserDTO);
+        userService.updateUser(studentUserDTO, loginUser);
 
         User savedd = userDao.findById(saved.getId()).orElseThrow(() -> new IllegalStateException("存储User失败"));
 
@@ -116,6 +152,7 @@ class UserServiceTest {
         Assertions.assertEquals("22222", savedd.getStudentUser().getStudentId());
         Assertions.assertEquals("232301199708085433", savedd.getStudentUser().getIdCard());
 
+        userDao.delete(saveddd);
         userDao.delete(saved);
         studentUserDao.delete(savedStudentUser);
         apartmentDao.delete(savedApartment);
@@ -123,8 +160,19 @@ class UserServiceTest {
 
     @Test
     void delUser() {
-        Assertions.assertThrows(NullFiledException.class, () -> userService.delUser(null));
-        Assertions.assertThrows(NullFiledException.class, () -> userService.delUser(""));
+        User u = new User();
+        u.setName("测试用名字");
+        u.setTel("15636359874");
+        u.setEmail("itning@itning.top");
+        u.setUsername("testusername");
+        u.setPassword("testpassword");
+        u.setRole(Role.withStudentUser());
+        User saveddd = userDao.save(u);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUsername(saveddd.getUsername());
+
+        Assertions.assertThrows(NullFiledException.class, () -> userService.delUser(null, loginUser));
+        Assertions.assertThrows(NullFiledException.class, () -> userService.delUser("", loginUser));
 
         User user = new User();
         user.setName("测试用名字");
@@ -156,22 +204,34 @@ class UserServiceTest {
         saved.setStudentUser(savedStudentUser);
         userDao.save(saved);
 
-        userService.delUser(saved.getId());
+        userService.delUser(saved.getId(), loginUser);
         Assertions.assertNull(userDao.findByUsername("测试用名字"));
 
+        userDao.delete(saveddd);
         studentUserDao.delete(savedStudentUser);
         apartmentDao.delete(savedApartment);
     }
 
     @Test
     void upFile() throws IOException {
+        User u = new User();
+        u.setName("测试用名字");
+        u.setTel("15636359874");
+        u.setEmail("itning@itning.top");
+        u.setUsername("testusername");
+        u.setPassword("testpassword");
+        u.setRole(Role.withStudentUser());
+        User savedd = userDao.save(u);
+        LoginUser loginUser = new LoginUser();
+        loginUser.setUsername(savedd.getUsername());
+
         Apartment apartment = new Apartment();
         apartment.setName("测试用");
         Apartment savedApartment = apartmentDao.save(apartment);
 
         byte[] bytes = FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:test.xlsx"));
         MultipartFile multipartFile = new MockMultipartFile("测试文件1.xlsx", "测试文件1.xlsx", MediaType.APPLICATION_OCTET_STREAM_VALUE, bytes);
-        userService.upFile(multipartFile);
+        userService.upFile(multipartFile, loginUser);
 
         User user = userDao.findByUsername("2016022135");
 
@@ -183,9 +243,10 @@ class UserServiceTest {
 
         byte[] bytes2 = FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:test2.xlsx"));
         MultipartFile multipartFile2 = new MockMultipartFile("测试文件2.xlsx", null, MediaType.APPLICATION_OCTET_STREAM_VALUE, bytes2);
-        UpFileDTO upFileDTO2 = userService.upFile(multipartFile2);
+        UpFileDTO upFileDTO2 = userService.upFile(multipartFile2, loginUser);
         Assertions.assertFalse(upFileDTO2.getError().isEmpty());
 
+        userDao.delete(savedd);
         userDao.delete(user);
         studentUserDao.delete(studentUser);
         apartmentDao.delete(savedApartment);
@@ -263,7 +324,5 @@ class UserServiceTest {
     @Test
     void testGetAllUser() {
         Assertions.assertNotNull(userService.getAllUser());
-        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "gmtModified"));
-        Assertions.assertNotNull(userService.getAllUser(pageable));
     }
 }
