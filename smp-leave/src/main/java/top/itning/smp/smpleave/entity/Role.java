@@ -20,6 +20,13 @@ import java.util.Date;
 @Data
 @Entity(name = "role")
 public class Role implements Serializable {
+    public static final String STUDENT_ROLE_ID = "1";
+    public static final String STUDENT_ROLE_ID_STR = "学生";
+    public static final String TEACHER_ROLE_ID = "2";
+    public static final String TEACHER_ROLE_ID_STR = "教师";
+    public static final String COUNSELOR_ROLE_ID = "3";
+    public static final String COUNSELOR_ROLE_ID_STR = "辅导员";
+
     /**
      * 角色ID
      */

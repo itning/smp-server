@@ -24,6 +24,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import static top.itning.smp.smpleave.security.MustLogin.ROLE.COUNSELOR;
+import static top.itning.smp.smpleave.security.MustLogin.ROLE.STUDENT;
+
 /**
  * @author itning
  */
@@ -79,7 +82,7 @@ public class LeaveController {
     @PostMapping("/leave/comment")
     public ResponseEntity<?> newComment(@RequestParam String leaveId,
                                         @RequestParam String comment,
-                                        @MustLogin LoginUser loginUser) {
+                                        @MustLogin(role = {STUDENT, COUNSELOR}) LoginUser loginUser) {
         return RestModel.created(leaveService.newComment(leaveId, comment, loginUser));
     }
 

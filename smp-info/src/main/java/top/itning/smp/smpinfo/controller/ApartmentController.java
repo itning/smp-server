@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.entity.RestModel;
+import top.itning.smp.smpinfo.security.LoginUser;
+import top.itning.smp.smpinfo.security.MustCounselorLogin;
 import top.itning.smp.smpinfo.service.ApartmentService;
 
 /**
@@ -23,7 +25,7 @@ public class ApartmentController {
      * @return 公寓信息
      */
     @GetMapping("/apartments")
-    public ResponseEntity<?> getAllApartments() {
+    public ResponseEntity<?> getAllApartments(@MustCounselorLogin LoginUser loginUser) {
         return RestModel.ok(apartmentService.getAllApartments());
     }
 
@@ -33,7 +35,7 @@ public class ApartmentController {
      * @param apartment 公寓信息
      */
     @PatchMapping("/apartment")
-    public ResponseEntity<?> updateApartment(@RequestBody Apartment apartment) {
+    public ResponseEntity<?> updateApartment(@MustCounselorLogin LoginUser loginUser, @RequestBody Apartment apartment) {
         apartmentService.updateApartment(apartment);
         return RestModel.noContent();
     }
@@ -45,7 +47,7 @@ public class ApartmentController {
      * @return ResponseEntity
      */
     @DeleteMapping("/apartment/{id}")
-    public ResponseEntity<?> delApartment(@PathVariable String id) {
+    public ResponseEntity<?> delApartment(@MustCounselorLogin LoginUser loginUser, @PathVariable String id) {
         apartmentService.delApartment(id);
         return RestModel.noContent();
     }
@@ -57,7 +59,7 @@ public class ApartmentController {
      * @return 新创建的公寓
      */
     @PostMapping("/apartment")
-    public ResponseEntity<?> addApartment(String name) {
+    public ResponseEntity<?> addApartment(@MustCounselorLogin LoginUser loginUser, @RequestParam String name) {
         return RestModel.created(apartmentService.saveApartment(name));
     }
 }

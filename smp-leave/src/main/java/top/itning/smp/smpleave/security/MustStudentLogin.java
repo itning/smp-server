@@ -8,6 +8,6 @@ import java.lang.annotation.*;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@MustLogin
-public @interface MustStudentLogin{
+@MustLogin(role = MustLogin.ROLE.STUDENT)
+public @interface MustStudentLogin {
 }

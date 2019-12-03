@@ -16,6 +16,9 @@ import top.itning.smp.smpclass.service.ClassCheckService;
 
 import java.util.Date;
 
+import static top.itning.smp.smpclass.security.MustLogin.ROLE.STUDENT;
+import static top.itning.smp.smpclass.security.MustLogin.ROLE.TEACHER;
+
 /**
  * @author itning
  */
@@ -114,7 +117,7 @@ public class ClassCheckController {
      * @return ResponseEntity
      */
     @GetMapping("/user_check_detail")
-    public ResponseEntity<?> getUserCheckDetail(@MustLogin LoginUser loginUser,
+    public ResponseEntity<?> getUserCheckDetail(@MustLogin(role = {STUDENT, TEACHER}) LoginUser loginUser,
                                                 @RequestParam String studentUserName,
                                                 @RequestParam String studentClassId) {
         return RestModel.ok(studentClassCheckService.getUserCheckDetail(studentUserName, studentClassId, loginUser));
