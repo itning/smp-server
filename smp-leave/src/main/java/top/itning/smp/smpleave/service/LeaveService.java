@@ -19,11 +19,12 @@ public interface LeaveService {
     /**
      * 获取请假信息
      *
-     * @param pageable 分页信息
-     * @param status   状态
+     * @param pageable  分页信息
+     * @param status    状态
+     * @param loginUser 登录用户
      * @return 请假信息集合
      */
-    Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status);
+    Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status, LoginUser loginUser);
 
     /**
      * 新增请假信息
@@ -40,9 +41,10 @@ public interface LeaveService {
      * @param searchDTO 关键字
      * @param pageable  分页
      * @param status    审批状态
+     * @param loginUser 登录用户
      * @return 请假信息集合
      */
-    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status);
+    Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status, LoginUser loginUser);
 
     /**
      * 新增评论
@@ -55,12 +57,13 @@ public interface LeaveService {
     LeaveReason newComment(String leaveId, String comment, LoginUser loginUser);
 
     /**
-     * 审核通过
+     * 更改审批状态
      *
-     * @param leaveId 请假ID
-     * @param status  状态
+     * @param leaveId   请假ID
+     * @param status    状态
+     * @param loginUser 登录用户
      */
-    void leaveCheckStatusChange(String leaveId, boolean status);
+    void leaveCheckStatusChange(String leaveId, boolean status, LoginUser loginUser);
 
     /**
      * 获取正在生效的请假信息数量

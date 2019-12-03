@@ -55,6 +55,10 @@ public class StudentUser implements Serializable {
      */
     private String studentId;
     /**
+     * 该学生所属辅导员的ID
+     */
+    private String belongCounselorId;
+    /**
      * 身份证号
      */
     private String idCard;

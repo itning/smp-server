@@ -23,6 +23,7 @@ import top.itning.smp.smpleave.entity.LeaveType;
 import top.itning.smp.smpleave.entity.User;
 import top.itning.smp.smpleave.exception.DateRangeException;
 import top.itning.smp.smpleave.exception.NullFiledException;
+import top.itning.smp.smpleave.exception.SecurityException;
 import top.itning.smp.smpleave.exception.UnexpectedException;
 import top.itning.smp.smpleave.security.LoginUser;
 import top.itning.smp.smpleave.service.LeaveService;
@@ -59,8 +60,27 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status) {
-        return leaveDao.findAllByStatus(status, pageable).map(mapLeave2LeaveDto());
+    public Page<LeaveDTO> getLeaves(Pageable pageable, Boolean status, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            if (Objects.isNull(status)) {
+                list.add(cb.isNull(root.get("status")));
+            } else {
+                list.add(cb.equal(root.get("status"), status));
+            }
+            Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
+            Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+
+            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        }, pageable).map(mapLeave2LeaveDto());
     }
 
     @Override
@@ -97,7 +117,12 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status) {
+    public Page<LeaveDTO> search(SearchDTO searchDTO, Pageable pageable, Boolean status, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
         return leaveDao.findAll((Specification<Leave>) (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
@@ -136,6 +161,8 @@ public class LeaveServiceImpl implements LeaveService {
                     dateIntervalQuery(list, cb, root, "endTime", null, localDateTime2Date(getNextDayFromNow()));
                 }
             }
+            Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
 
             Predicate[] p = new Predicate[list.size()];
             return cb.and(list.toArray(p));
@@ -172,8 +199,17 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
-    public void leaveCheckStatusChange(String leaveId, boolean status) {
+    public void leaveCheckStatusChange(String leaveId, boolean status, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
         Leave leave = leaveDao.findById(leaveId).orElseThrow(() -> new NullFiledException("请假ID不存在", HttpStatus.BAD_REQUEST));
+        StudentUser studentUser = infoClient.getStudentUserInfoByUserName(leave.getUser().getUsername()).orElseThrow(() -> new NullFiledException("没有这个学生", HttpStatus.NOT_FOUND));
+        if (!user.getId().equals(studentUser.getBelongCounselorId())) {
+            throw new SecurityException("审批失败", HttpStatus.FORBIDDEN);
+        }
         leave.setStatus(status);
         leaveDao.save(leave);
     }

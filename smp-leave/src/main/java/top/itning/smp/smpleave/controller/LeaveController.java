@@ -56,7 +56,7 @@ public class LeaveController {
     public ResponseEntity<?> allLeaves(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                                Pageable pageable,
                                        @MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(leaveService.getLeaves(pageable, true));
+        return RestModel.ok(leaveService.getLeaves(pageable, true, loginUser));
     }
 
     /**
@@ -69,7 +69,7 @@ public class LeaveController {
     public ResponseEntity<?> allCheckLeaves(@PageableDefault(size = 20, sort = {"gmtModified"}, direction = Sort.Direction.DESC)
                                                     Pageable pageable,
                                             @MustCounselorLogin LoginUser loginUser) {
-        return RestModel.ok(leaveService.getLeaves(pageable, null));
+        return RestModel.ok(leaveService.getLeaves(pageable, null, loginUser));
     }
 
     /**
@@ -98,11 +98,11 @@ public class LeaveController {
                                                  Pageable pageable,
                                          @MustCounselorLogin LoginUser loginUser,
                                          SearchDTO searchDTO) {
-        return RestModel.ok(leaveService.search(searchDTO, pageable, null));
+        return RestModel.ok(leaveService.search(searchDTO, pageable, null, loginUser));
     }
 
     /**
-     * 审批通过
+     * 更改审批状态
      *
      * @param leaveId 请假ID
      * @return ResponseEntity
@@ -111,7 +111,7 @@ public class LeaveController {
     public ResponseEntity<?> leaveCheckStatusChangeTrue(@RequestParam String leaveId,
                                                         @RequestParam boolean status,
                                                         @MustCounselorLogin LoginUser loginUser) {
-        leaveService.leaveCheckStatusChange(leaveId, status);
+        leaveService.leaveCheckStatusChange(leaveId, status, loginUser);
         return RestModel.noContent();
     }
 
@@ -150,7 +150,7 @@ public class LeaveController {
                                             Pageable pageable,
                                     @MustCounselorLogin LoginUser loginUser,
                                     SearchDTO searchDTO) {
-        return RestModel.ok(leaveService.search(searchDTO, pageable, true));
+        return RestModel.ok(leaveService.search(searchDTO, pageable, true, loginUser));
     }
 
     /**

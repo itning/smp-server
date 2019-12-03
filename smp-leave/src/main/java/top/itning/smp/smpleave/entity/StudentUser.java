@@ -38,6 +38,11 @@ public class StudentUser implements Serializable {
     @Column(nullable = false, unique = true)
     private String studentId;
     /**
+     * 该学生所属辅导员的ID
+     */
+    @Column(nullable = false, columnDefinition = "char(36)", length = 36)
+    private String belongCounselorId;
+    /**
      * 身份证号
      */
     @Column(length = 18, columnDefinition = "char(18)", unique = true)
