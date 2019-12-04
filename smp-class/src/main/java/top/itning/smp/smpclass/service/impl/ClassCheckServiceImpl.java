@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpclass.client.InfoClient;
+import top.itning.smp.smpclass.client.LeaveClient;
+import top.itning.smp.smpclass.client.entity.LeaveType;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
@@ -41,14 +43,16 @@ public class ClassCheckServiceImpl implements ClassCheckService {
     private final StudentClassUserDao studentClassUserDao;
     private final StudentClassDao studentClassDao;
     private final InfoClient infoClient;
+    private final LeaveClient leaveClient;
 
     @Autowired
-    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, InfoClient infoClient) {
+    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, InfoClient infoClient, LeaveClient leaveClient) {
         this.studentClassCheckMetaDataDao = studentClassCheckMetaDataDao;
         this.studentClassCheckDao = studentClassCheckDao;
         this.studentClassUserDao = studentClassUserDao;
         this.studentClassDao = studentClassDao;
         this.infoClient = infoClient;
+        this.leaveClient = leaveClient;
     }
 
     @Override
@@ -92,6 +96,9 @@ public class ClassCheckServiceImpl implements ClassCheckService {
             logger.error("user info is null,but system should not null");
             return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
         });
+        if (leaveClient.isLeave(user.getUsername(), LeaveType.CLASS_LEAVE)) {
+            throw new NullFiledException("您今天已经请假了，无需打卡", HttpStatus.BAD_REQUEST);
+        }
         float m = GpsUtils.calculateLineDistance(studentClassCheckMetaData.getLatitude(), studentClassCheckMetaData.getLongitude(),
                 latitude, longitude);
         logger.debug("user {} student class id {} calculate line distance {} and set m {}", loginUser.getName(), studentClass.getId(), m, studentClassCheckMetaData.getM());
