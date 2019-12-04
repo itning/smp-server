@@ -13,7 +13,7 @@ import java.util.Date;
  * @author itning
  */
 @Data
-@Entity(name = "leave_reason")
+@Entity(name = "student_leave_reason")
 public class LeaveReason implements Serializable {
     /**
      * ID

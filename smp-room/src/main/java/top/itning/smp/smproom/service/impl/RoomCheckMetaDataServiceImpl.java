@@ -1,12 +1,19 @@
 package top.itning.smp.smproom.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import top.itning.smp.smproom.client.InfoClient;
 import top.itning.smp.smproom.dao.StudentRoomCheckMetaDataDao;
 import top.itning.smp.smproom.entity.StudentRoomCheckMetaData;
+import top.itning.smp.smproom.entity.StudentRoomCheckMetaDataPrimaryKey;
 import top.itning.smp.smproom.entity.StudentUser;
 import top.itning.smp.smproom.entity.User;
 import top.itning.smp.smproom.exception.AppMetaException;
@@ -23,11 +30,22 @@ import java.util.stream.Collectors;
 import static top.itning.smp.smproom.util.DateUtils.localDateTime2Date;
 
 /**
+ * 该类的某些方法在辅导员第一次访问时因为没有元数据调用{@link RoomCheckMetaDataServiceImpl#initAllKey}方法
+ * <p>{@link RoomCheckMetaDataServiceImpl#initAllKey}方法存在线程安全问题，需要类锁；
+ * <p>该类所有方法的事务隔离级别为 已提交读（read commited）
+ * <p>{@link RoomCheckMetaDataServiceImpl#initAllKey}方法事务手动提交
+ *
  * @author itning
+ * @see #initAllKey
+ * @see org.springframework.transaction.annotation.Transactional
+ * @see org.springframework.transaction.annotation.Isolation
+ * @see org.springframework.transaction.annotation.Propagation
+ * @see org.springframework.transaction.PlatformTransactionManager
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
+@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class RoomCheckMetaDataServiceImpl implements RoomCheckMetaDataService {
+    private static final Logger logger = LoggerFactory.getLogger(RoomCheckMetaDataServiceImpl.class);
     /**
      * 时间分割完数组大小
      */
@@ -39,27 +57,43 @@ public class RoomCheckMetaDataServiceImpl implements RoomCheckMetaDataService {
 
     private final StudentRoomCheckMetaDataDao studentRoomCheckMetaDataDao;
     private final InfoClient infoClient;
+    private final PlatformTransactionManager transactionManager;
 
     @Autowired
-    public RoomCheckMetaDataServiceImpl(StudentRoomCheckMetaDataDao studentRoomCheckMetaDataDao, InfoClient infoClient) {
+    public RoomCheckMetaDataServiceImpl(StudentRoomCheckMetaDataDao studentRoomCheckMetaDataDao, InfoClient infoClient, PlatformTransactionManager transactionManager) {
         this.studentRoomCheckMetaDataDao = studentRoomCheckMetaDataDao;
         this.infoClient = infoClient;
+        this.transactionManager = transactionManager;
     }
 
-    private void initAllKey(String counselorId) {
-        if (!studentRoomCheckMetaDataDao.existsByKeyAndBelongCounselorId(StudentRoomCheckMetaData.KEY_ROOM_CHECK_TIME, counselorId)) {
-            StudentRoomCheckMetaData studentRoomCheckMetaData1 = new StudentRoomCheckMetaData();
-            studentRoomCheckMetaData1.setKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_TIME);
-            studentRoomCheckMetaData1.setValue("20:30");
-            studentRoomCheckMetaData1.setBelongCounselorId(counselorId);
-            studentRoomCheckMetaDataDao.save(studentRoomCheckMetaData1);
-        }
-        if (!studentRoomCheckMetaDataDao.existsByKeyAndBelongCounselorId(StudentRoomCheckMetaData.KEY_ROOM_CHECK_GPS_RANGE, counselorId)) {
-            StudentRoomCheckMetaData studentRoomCheckMetaData2 = new StudentRoomCheckMetaData();
-            studentRoomCheckMetaData2.setKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_GPS_RANGE);
-            studentRoomCheckMetaData2.setValue("127.210157,45.743361;127.213485,45.74255;127.21364,45.739923;127.209396,45.740759");
-            studentRoomCheckMetaData2.setBelongCounselorId(counselorId);
-            studentRoomCheckMetaDataDao.save(studentRoomCheckMetaData2);
+    public void initAllKey(String counselorId) {
+        synchronized (RoomCheckMetaDataServiceImpl.class) {
+            DefaultTransactionDefinition transDefinition = new DefaultTransactionDefinition();
+            transDefinition.setPropagationBehavior(DefaultTransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionStatus transStatus = transactionManager.getTransaction(transDefinition);
+            try {
+                if (!studentRoomCheckMetaDataDao.existsById(new StudentRoomCheckMetaDataPrimaryKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_TIME, counselorId))) {
+                    StudentRoomCheckMetaData studentRoomCheckMetaData1 = new StudentRoomCheckMetaData();
+                    studentRoomCheckMetaData1.setKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_TIME);
+                    studentRoomCheckMetaData1.setValue("20:30");
+                    studentRoomCheckMetaData1.setBelongCounselorId(counselorId);
+                    studentRoomCheckMetaDataDao.saveAndFlush(studentRoomCheckMetaData1);
+                }
+                if (!studentRoomCheckMetaDataDao.existsById(new StudentRoomCheckMetaDataPrimaryKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_GPS_RANGE, counselorId))) {
+                    StudentRoomCheckMetaData studentRoomCheckMetaData2 = new StudentRoomCheckMetaData();
+                    studentRoomCheckMetaData2.setKey(StudentRoomCheckMetaData.KEY_ROOM_CHECK_GPS_RANGE);
+                    studentRoomCheckMetaData2.setValue("127.210157,45.743361;127.213485,45.74255;127.21364,45.739923;127.209396,45.740759");
+                    studentRoomCheckMetaData2.setBelongCounselorId(counselorId);
+                    studentRoomCheckMetaDataDao.saveAndFlush(studentRoomCheckMetaData2);
+                }
+                transactionManager.commit(transStatus);
+                logger.debug("transaction commit success with thread {}", Thread.currentThread().getName());
+            } catch (Exception e) {
+                logger.error("get exception when init", e);
+                transactionManager.rollback(transStatus);
+            } finally {
+                logger.debug("init counselor id {} for all key finally", counselorId);
+            }
         }
     }
 

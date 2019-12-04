@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -14,6 +15,7 @@ import java.util.Date;
  * @author itning
  */
 @Data
+@IdClass(StudentRoomCheckMetaDataPrimaryKey.class)
 @Entity(name = "student_room_check_meta_data")
 public class StudentRoomCheckMetaData implements Serializable {
     /**
@@ -38,6 +40,7 @@ public class StudentRoomCheckMetaData implements Serializable {
     /**
      * 所属辅导员的ID
      */
+    @Id
     @Column(nullable = false, columnDefinition = "char(36)", length = 36)
     private String belongCounselorId;
     /**
