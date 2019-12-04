@@ -1,5 +1,8 @@
 package top.itning.smp.smpclass.service.impl;
 
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,9 @@ import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.DateUtils;
 import top.itning.smp.smpclass.util.GpsUtils;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -254,5 +260,100 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                     return studentClassCheckDto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void exportCheck(LoginUser loginUser, String studentClassId, HttpServletResponse response) throws IOException {
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("学生班级不存在", HttpStatus.NOT_FOUND));
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
+            // 不应出现该异常，因为用户传参必然存在
+            logger.error("user info is null,but system should not null");
+            return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
+        });
+        if (!user.getId().equals(studentClass.getUser().getId())) {
+            throw new SecurityException("导出失败", HttpStatus.FORBIDDEN);
+        }
+        // 班级所有学生
+        List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClass);
+        // 班级所有签到元数据
+        List<StudentClassCheckMetaData> studentClassCheckMetaDataList = studentClassCheckMetaDataDao.findAllByStudentClass(studentClass)
+                .stream()
+                .sorted((o1, o2) -> {
+                    if (o1.getGmtCreate().before(o2.getGmtCreate())) {
+                        return -1;
+                    } else if (o1.getGmtCreate().after(o2.getGmtCreate())) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                })
+                .collect(Collectors.toList());
+
+        XSSFWorkbook sheets = new XSSFWorkbook();
+        XSSFSheet sheet = sheets.createSheet();
+        // 背景红色
+        XSSFCellStyle redBackColorCellStyle = sheets.createCellStyle();
+        redBackColorCellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        redBackColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        // 背景黄色
+        XSSFCellStyle yellowBackColorCellStyle = sheets.createCellStyle();
+        yellowBackColorCellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        yellowBackColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        XSSFRow headerRow = sheet.createRow(0);
+        XSSFCell c0 = headerRow.createCell(0);
+        c0.setCellValue("姓名");
+        XSSFCell c1 = headerRow.createCell(1);
+        c1.setCellValue("学号");
+
+        // 设置学生姓名和学号
+        int nowStudentInfoRowIndex = 1;
+        for (StudentClassUser studentClassUser : studentClassUserList) {
+            XSSFRow row = sheet.createRow(nowStudentInfoRowIndex++);
+            XSSFCell studentNumCell = row.createCell(0);
+            XSSFCell studentNameCell = row.createCell(1);
+            studentNumCell.setCellValue(studentClassUser.getUser().getStudentUser().getStudentId());
+            studentNameCell.setCellValue(studentClassUser.getUser().getName());
+        }
+        // 设置签到信息
+        int headerCellIndex = 2;
+        int checkInfoCellIndex = 2;
+        for (StudentClassCheckMetaData studentClassCheckMetaData : studentClassCheckMetaDataList) {
+            // 本次元数据对应的那天的请假信息
+            List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+            XSSFCell cell = headerRow.createCell(headerCellIndex++);
+            // 在表头设置签到日期
+            cell.setCellValue(DateUtils.format(studentClassCheckMetaData.getStartTime(), DateUtils.YYYYMMDDHHMMSS_DATE_TIME_FORMATTER_2));
+            int checkInfoRowIndex = 1;
+            for (StudentClassUser studentClassUser : studentClassUserList) {
+                XSSFRow row = sheet.getRow(checkInfoRowIndex++);
+                XSSFCell checkInfoCell = row.createCell(checkInfoCellIndex);
+
+                StudentClassCheck studentClassCheck = studentClassCheckDao.findTopByUserAndStudentClassAndStudentClassCheckMetaData(studentClassUser.getUser(), studentClass, studentClassCheckMetaData);
+                if (studentClassCheck == null) {
+                    boolean isLeave = false;
+                    for (LeaveDTO leaveDTO : allLeave) {
+                        if (leaveDTO.getStudentUser().getId().equals(studentClassUser.getUser().getId())) {
+                            isLeave = true;
+                            break;
+                        }
+                    }
+                    if (isLeave) {
+                        checkInfoCell.setCellStyle(yellowBackColorCellStyle);
+                        checkInfoCell.setCellValue("请假");
+                    } else {
+                        checkInfoCell.setCellStyle(redBackColorCellStyle);
+                        checkInfoCell.setCellValue("未签到");
+                    }
+                } else {
+                    checkInfoCell.setCellValue("已签到");
+                }
+            }
+            checkInfoCellIndex++;
+        }
+        String fileName = new String((studentClass.getName() + ".xlsx").getBytes(), StandardCharsets.ISO_8859_1);
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        sheets.write(response.getOutputStream());
     }
 }

@@ -7,6 +7,8 @@ import top.itning.smp.smpclass.entity.StudentClassCheck;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.security.LoginUser;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -77,4 +79,14 @@ public interface ClassCheckService {
      * @return 签到信息
      */
     List<StudentClassCheckDTO> getUserCheckDetail(String studentUserName, String studentClassId, LoginUser loginUser);
+
+    /**
+     * 导出班级签到信息EXCEL
+     *
+     * @param loginUser      登录用户
+     * @param studentClassId 学生班级ID
+     * @param response       HttpServletResponse
+     * @throws IOException 导出异常
+     */
+    void exportCheck(LoginUser loginUser, String studentClassId, HttpServletResponse response) throws IOException;
 }

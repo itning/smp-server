@@ -14,6 +14,8 @@ import top.itning.smp.smpclass.security.MustStudentLogin;
 import top.itning.smp.smpclass.security.MustTeacherLogin;
 import top.itning.smp.smpclass.service.ClassCheckService;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Date;
 
 import static top.itning.smp.smpclass.security.MustLogin.ROLE.STUDENT;
@@ -121,5 +123,19 @@ public class ClassCheckController {
                                                 @RequestParam String studentUserName,
                                                 @RequestParam String studentClassId) {
         return RestModel.ok(studentClassCheckService.getUserCheckDetail(studentUserName, studentClassId, loginUser));
+    }
+
+    /**
+     * 导出某班签到信息
+     *
+     * @param studentClassId 学生班级ID
+     * @param response       HttpServletResponse
+     * @throws IOException 导出异常
+     */
+    @GetMapping("/export/check")
+    public void exportCheck(@MustTeacherLogin LoginUser loginUser,
+                            @RequestParam String studentClassId,
+                            HttpServletResponse response) throws IOException {
+        studentClassCheckService.exportCheck(loginUser, studentClassId, response);
     }
 }
