@@ -66,7 +66,7 @@ public class RoomCheckMetaDataServiceImpl implements RoomCheckMetaDataService {
         this.transactionManager = transactionManager;
     }
 
-    public void initAllKey(String counselorId) {
+    private void initAllKey(String counselorId) {
         synchronized (RoomCheckMetaDataServiceImpl.class) {
             DefaultTransactionDefinition transDefinition = new DefaultTransactionDefinition();
             transDefinition.setPropagationBehavior(DefaultTransactionDefinition.PROPAGATION_REQUIRES_NEW);
