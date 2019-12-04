@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpclass.client.InfoClient;
 import top.itning.smp.smpclass.client.LeaveClient;
+import top.itning.smp.smpclass.client.entity.LeaveDTO;
 import top.itning.smp.smpclass.client.entity.LeaveType;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
@@ -23,6 +24,7 @@ import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
+import top.itning.smp.smpclass.util.DateUtils;
 import top.itning.smp.smpclass.util.GpsUtils;
 
 import java.util.Date;
@@ -160,6 +162,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         }
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClassCheckMetaData.getStudentClass());
         List<StudentClassCheck> studentClassCheckList = studentClassCheckDao.findAllByStudentClassCheckMetaData(studentClassCheckMetaData);
+        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
         return studentClassUserList
                 .parallelStream()
                 .map(studentClassUser -> {
@@ -176,6 +179,12 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                             studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
                             studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                             studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
+                            break;
+                        }
+                    }
+                    for (LeaveDTO leaveDto : allLeave) {
+                        if (leaveDto.getStudentUser().getId().equals(studentClassUser.getUser().getId())) {
+                            studentClassCheckDto.setCheck(null);
                             break;
                         }
                     }
@@ -232,6 +241,13 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                         studentClassCheckDto.setCheckTime(studentClassCheck.getCheckTime());
                         studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                         studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
+                    }
+                    List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+                    for (LeaveDTO leaveDto : allLeave) {
+                        if (leaveDto.getStudentUser().getId().equals(finalStudentUser.getId())) {
+                            studentClassCheckDto.setCheck(null);
+                            break;
+                        }
                     }
                     studentClassCheckDto.setUser(finalStudentUser);
                     studentClassCheckDto.setStudentClass(studentClass);

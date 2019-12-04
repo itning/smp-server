@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -24,6 +25,9 @@ public class DateUtils {
      * 最大时间
      */
     public static final Date MAX_DATE = Date.from(LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).atZone(ZONE_ID).toInstant());
+
+    public static final DateTimeFormatter YYYYMMDD_DATE_TIME_FORMATTER_1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter YYYYMMDDHHMMSS_DATE_TIME_FORMATTER_2 = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
     /**
      * 判断两个时间区间是否有交集的方法
@@ -122,5 +126,9 @@ public class DateUtils {
         Date t1 = localDateTime2Date(localDateTime);
         Date t2 = localDateTime2Date(localDateTime.plusDays(1));
         return new Tuple2<>(t1, t2);
+    }
+
+    public static String format(Date date, DateTimeFormatter dateTimeFormatter) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZONE_ID).format(dateTimeFormatter);
     }
 }

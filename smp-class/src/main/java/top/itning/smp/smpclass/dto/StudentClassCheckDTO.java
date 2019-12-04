@@ -21,7 +21,7 @@ public class StudentClassCheckDTO implements Serializable {
      */
     private StudentClass studentClass;
     /**
-     * 该学生是否签到了
+     * 该学生是否签到了 true已签 false未签 null请假
      */
     private Boolean check;
     /**
