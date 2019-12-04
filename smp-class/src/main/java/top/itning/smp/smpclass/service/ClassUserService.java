@@ -2,6 +2,7 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.client.entity.LeaveDTO;
 import top.itning.smp.smpclass.dto.StudentClassDTO;
 import top.itning.smp.smpclass.entity.StudentClass;
@@ -9,6 +10,7 @@ import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 import top.itning.smp.smpclass.entity.StudentClassUser;
 import top.itning.smp.smpclass.security.LoginUser;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -96,4 +98,15 @@ public interface ClassUserService {
      * @param loginUser       登录用户
      */
     void delStudent(String studentUserName, String studentClassId, LoginUser loginUser);
+
+    /**
+     * 通过EXCEL文件导入学生到某个班级
+     *
+     * @param file           文件
+     * @param studentClassId 班级ID
+     * @param loginUser      登录用户
+     * @return ResponseEntity
+     * @throws IOException 文件解析异常
+     */
+    List<StudentClassUser> importStudentByFile(MultipartFile file, String studentClassId, LoginUser loginUser) throws IOException;
 }

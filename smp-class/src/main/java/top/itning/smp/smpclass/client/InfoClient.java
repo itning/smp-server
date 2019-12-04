@@ -32,4 +32,13 @@ public interface InfoClient {
      */
     @GetMapping("/internal/student_user/{username}")
     Optional<StudentUser> getStudentUserInfoByUserName(@PathVariable String username);
+
+    /**
+     * 获取学生信息根据学号
+     *
+     * @param studentId 学号
+     * @return 用户
+     */
+    @GetMapping("/internal/student_user_id/{studentId}")
+    User getStudentUserDtoByStudentId(@PathVariable String studentId);
 }

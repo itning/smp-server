@@ -7,12 +7,14 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustStudentLogin;
 import top.itning.smp.smpclass.security.MustTeacherLogin;
 import top.itning.smp.smpclass.service.ClassUserService;
 
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -142,5 +144,21 @@ public class ClassUserController {
                                         @RequestParam String studentClassId) {
         classUserService.delStudent(studentUserName, studentClassId, loginUser);
         return RestModel.noContent();
+    }
+
+    /**
+     * 通过EXCEL文件导入学生到某个班级
+     * 每行格式<code>学号:2016022022</code>
+     *
+     * @param file           文件
+     * @param studentClassId 班级ID
+     * @return ResponseEntity
+     * @throws IOException 文件解析异常
+     */
+    @PostMapping("/student_class/file/{studentClassId}")
+    public ResponseEntity<?> upFile(@MustTeacherLogin LoginUser loginUser,
+                                    @RequestParam("file") MultipartFile file,
+                                    @PathVariable String studentClassId) throws IOException {
+        return RestModel.created(classUserService.importStudentByFile(file, studentClassId, loginUser));
     }
 }

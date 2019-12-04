@@ -382,6 +382,16 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public StudentUserDTO getStudentUserDtoByStudentId(String studentId) {
+        StudentUser studentUser = studentUserDao.findByStudentId(studentId);
+        if (studentUser == null) {
+            return null;
+        }
+        User user = userDao.findById(studentUser.getId()).orElse(null);
+        return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
+    }
+
     /**
      * 检查值
      */

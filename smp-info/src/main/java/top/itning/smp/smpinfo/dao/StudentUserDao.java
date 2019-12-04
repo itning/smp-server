@@ -55,4 +55,12 @@ public interface StudentUserDao extends JpaRepository<StudentUser, String>, JpaS
      * @return 全部学生信息
      */
     List<StudentUser> findAllByBelongCounselorId(String belongCounselorId);
+
+    /**
+     * 根据学号查询学生
+     *
+     * @param studentId 学号
+     * @return 学生信息
+     */
+    StudentUser findByStudentId(String studentId);
 }

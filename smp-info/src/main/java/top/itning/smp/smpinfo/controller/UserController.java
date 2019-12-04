@@ -140,4 +140,15 @@ public class UserController {
     public List<StudentUserDTO> getAllUser(@RequestParam String username) {
         return userService.getAllUser(username);
     }
+
+    /**
+     * 获取学生信息根据学号
+     *
+     * @param studentId 学号
+     * @return 学生信息
+     */
+    @GetMapping("/internal/student_user_id/{studentId}")
+    public StudentUserDTO getStudentUserDtoByStudentId(@PathVariable String studentId) {
+        return userService.getStudentUserDtoByStudentId(studentId);
+    }
 }

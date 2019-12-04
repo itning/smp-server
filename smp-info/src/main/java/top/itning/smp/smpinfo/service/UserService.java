@@ -91,4 +91,12 @@ public interface UserService {
      * @return 所有用户
      */
     List<StudentUserDTO> getAllUser(String username);
+
+    /**
+     * 根据学号获取学生DTO
+     *
+     * @param studentId 学号
+     * @return 学生信息DTO
+     */
+    StudentUserDTO getStudentUserDtoByStudentId(String studentId);
 }

@@ -1,5 +1,12 @@
 package top.itning.smp.smpclass.service.impl;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.client.InfoClient;
 import top.itning.smp.smpclass.client.LeaveClient;
 import top.itning.smp.smpclass.client.entity.LeaveDTO;
@@ -17,6 +25,7 @@ import top.itning.smp.smpclass.dao.StudentClassDao;
 import top.itning.smp.smpclass.dao.StudentClassUserDao;
 import top.itning.smp.smpclass.dto.StudentClassDTO;
 import top.itning.smp.smpclass.entity.*;
+import top.itning.smp.smpclass.exception.FileException;
 import top.itning.smp.smpclass.exception.NullFiledException;
 import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
@@ -25,7 +34,9 @@ import top.itning.smp.smpclass.service.ClassUserService;
 import top.itning.smp.smpclass.util.DateUtils;
 import top.itning.smp.smpclass.util.OrikaUtils;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +49,15 @@ import java.util.stream.Collectors;
 @Transactional(rollbackFor = Exception.class)
 public class ClassUserServiceImpl implements ClassUserService {
     private static final Logger logger = LoggerFactory.getLogger(ClassUserServiceImpl.class);
+    /**
+     * XLS 文件扩展名
+     */
+    private static final String XLS_FILE = ".xls";
+    /**
+     * XLSX 文件扩展名
+     */
+    private static final String XLSX_FILE = ".xlsx";
+
     private final StudentClassUserDao studentClassUserDao;
     private final StudentClassDao studentClassDao;
     private final StudentClassCheckDao studentClassCheckDao;
@@ -197,6 +217,57 @@ public class ClassUserServiceImpl implements ClassUserService {
         studentClassUserDao.delete(studentClassUser);
     }
 
+    @Override
+    public List<StudentClassUser> importStudentByFile(MultipartFile file, String studentClassId, LoginUser loginUser) throws IOException {
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        String originalFilename = file.getOriginalFilename();
+        Workbook workbook;
+        String fileType;
+        if (StringUtils.isBlank(originalFilename)) {
+            fileType = XLSX_FILE;
+        } else {
+            fileType = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        if (XLS_FILE.equals(fileType)) {
+            workbook = new HSSFWorkbook(file.getInputStream());
+        } else if (XLSX_FILE.equals(fileType)) {
+            workbook = new XSSFWorkbook(file.getInputStream());
+        } else {
+            throw new FileException("文件格式不正确", HttpStatus.BAD_REQUEST);
+        }
+        if (workbook.getNumberOfSheets() < 1) {
+            throw new FileException("工作簿数量错误：" + workbook.getNumberOfSheets(), HttpStatus.BAD_REQUEST);
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        List<StudentClassUser> studentClassUserList = new ArrayList<>();
+        int lastRowNum = sheet.getLastRowNum();
+        System.out.println(lastRowNum);
+        for (int i = 0; i <= lastRowNum; i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                String value = getCellValue(row, 0);
+                if (value == null) {
+                    continue;
+                }
+                if (value.length() > 3) {
+                    value = value.substring(3).trim();
+                }
+                User user = infoClient.getStudentUserDtoByStudentId(value);
+                if (user == null) {
+                    continue;
+                }
+                if (studentClassUserDao.existsByUserAndStudentClass(user, studentClass)) {
+                    continue;
+                }
+                StudentClassUser studentClassUser = new StudentClassUser();
+                studentClassUser.setUser(user);
+                studentClassUser.setStudentClass(studentClass);
+                studentClassUserList.add(studentClassUserDao.save(studentClassUser));
+            }
+        }
+        return studentClassUserList;
+    }
+
     /**
      * 生成班号
      *
@@ -237,5 +308,45 @@ public class ClassUserServiceImpl implements ClassUserService {
             throw new SecurityException("查询失败", HttpStatus.FORBIDDEN);
         }
         return studentClass;
+    }
+
+    /**
+     * 获取单元格中的数据
+     *
+     * @param row     行
+     * @param cellNum 单元格号
+     * @return 该单元格的数据
+     */
+    private String getCellValue(Row row, int cellNum) {
+        String stringCellValue = null;
+        Cell cell;
+        if ((cell = row.getCell(cellNum)) != null) {
+            try {
+                stringCellValue = cell.getStringCellValue();
+            } catch (IllegalStateException e) {
+                logger.debug("getCellValue::CellNum->" + cellNum + "<-尝试获取String类型数据失败");
+                try {
+                    logger.debug("getCellValue::CellNum->" + cellNum + "<-尝试获取Double类型数据");
+                    stringCellValue = String.valueOf(cell.getNumericCellValue());
+                } catch (IllegalStateException e1) {
+                    try {
+                        logger.debug("getCellValue::CellNum->" + cellNum + "<-尝试获取Boolean类型数据");
+                        stringCellValue = String.valueOf(cell.getBooleanCellValue());
+                    } catch (IllegalStateException e2) {
+                        try {
+                            logger.debug("getCellValue::CellNum->" + cellNum + "<-尝试获取Date类型数据");
+                            stringCellValue = String.valueOf(cell.getDateCellValue());
+                        } catch (IllegalStateException e3) {
+                            logger.warn("getCellValue::CellNum->" + cellNum + "<-未知类型数据->" + e3.getMessage());
+                        }
+                    }
+                }
+            } finally {
+                logger.debug("getCellValue::第" + cellNum + "格获取到的数据为->" + stringCellValue);
+            }
+        } else {
+            logger.debug("getCellValue::第" + cellNum + "格为空");
+        }
+        return stringCellValue;
     }
 }
