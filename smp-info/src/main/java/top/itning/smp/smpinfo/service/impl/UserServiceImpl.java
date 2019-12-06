@@ -268,7 +268,6 @@ public class UserServiceImpl implements UserService {
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
         for (int i = 1; i <= lastRowNum; i++) {
-            boolean canSave = true;
             Row row = sheet.getRow(i);
 
             String name = getCellValue(row, 0);
@@ -290,7 +289,7 @@ public class UserServiceImpl implements UserService {
 
             Apartment apartment = apartmentDao.findByName(apartmentName);
 
-            canSave = check(set, i, canSave, tel, email, studentId, apartmentName, apartment, politicalStatus, ethnic, roomNum, bedNum);
+            boolean canSave = check(set, i, tel, email, studentId, apartmentName, apartment, politicalStatus, ethnic, roomNum, bedNum);
 
             Map<String, Object> map = null;
             try {
@@ -401,8 +400,10 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 检查值
+     *
+     * @return 是否可以保存
      */
-    private boolean check(Set<String> set, int i, boolean canSave,
+    private boolean check(Set<String> set, int i,
                           String tel,
                           String email,
                           String studentId,
@@ -412,6 +413,7 @@ public class UserServiceImpl implements UserService {
                           String ethnic,
                           String roomNum,
                           String bedNum) {
+        boolean canSave = true;
         if (StringUtils.isBlank(tel) || tel.trim().length() != TEL_LENGTH) {
             canSave = false;
             set.add(initErrorMsg(i, 2, "手机号%s长度错误", tel));
