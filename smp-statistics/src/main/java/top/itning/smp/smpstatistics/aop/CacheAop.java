@@ -27,10 +27,10 @@ public class CacheAop {
     private static final Logger logger = LoggerFactory.getLogger(CacheAop.class);
     private static final int METHOD_PARAMS_LENGTH = 2;
     private static final String NO_NEED_ADD_LOGIN_USER_KEY_METHOD_NAME = "getClassComingChart";
-    private static final Cache<String, Object> cache;
+    private static final Cache<String, Object> CACHE;
 
     static {
-        cache = CacheBuilder
+        CACHE = CacheBuilder
                 .newBuilder()
                 .maximumSize(100)
                 // 10min to remove
@@ -71,11 +71,11 @@ public class CacheAop {
     }
 
     private Object getObject(ProceedingJoinPoint joinPoint, String key) throws Throwable {
-        Object o = cache.getIfPresent(key);
+        Object o = CACHE.getIfPresent(key);
         if (o == null) {
             logger.debug("make cache {}", key);
             Object proceed = joinPoint.proceed();
-            cache.put(key, proceed);
+            CACHE.put(key, proceed);
             return proceed;
         } else {
             return o;
