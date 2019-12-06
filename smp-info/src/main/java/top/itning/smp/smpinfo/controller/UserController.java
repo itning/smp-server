@@ -151,4 +151,14 @@ public class UserController {
     public StudentUserDTO getStudentUserDtoByStudentId(@PathVariable String studentId) {
         return userService.getStudentUserDtoByStudentId(studentId);
     }
+
+    /**
+     * 获取所有辅导员用户
+     *
+     * @return 用户
+     */
+    @GetMapping("/internal/counselor/users")
+    public List<User> getAllCounselorUser() {
+        return userService.getAllCounselorUser();
+    }
 }

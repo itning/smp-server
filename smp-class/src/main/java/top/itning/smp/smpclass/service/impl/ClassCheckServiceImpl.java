@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
 import top.itning.smp.smpclass.dao.StudentClassUserDao;
+import top.itning.smp.smpclass.dto.ClassComingDTO;
 import top.itning.smp.smpclass.dto.StudentClassCheckDTO;
 import top.itning.smp.smpclass.entity.*;
 import top.itning.smp.smpclass.exception.GpsException;
@@ -29,6 +31,7 @@ import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.DateUtils;
 import top.itning.smp.smpclass.util.GpsUtils;
+import top.itning.utils.tuple.Tuple2;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -355,5 +358,22 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         sheets.write(response.getOutputStream());
+    }
+
+    @Override
+    public ClassComingDTO classComingCount(Date startDate, Date endDate) {
+        Tuple2<Long, Long> startTime = studentClassCheckMetaDataDao
+                .findAll((Specification<StudentClassCheckMetaData>) (root, query, cb) -> cb.and(cb.between(root.get("startTime"), startDate, endDate)))
+                .parallelStream()
+                .map(studentClassCheckMetaData -> {
+                    long count = studentClassCheckDao.countAllByStudentClassCheckMetaData(studentClassCheckMetaData);
+                    long sum = studentClassUserDao.countAllByStudentClass(studentClassCheckMetaData.getStudentClass());
+                    return new Tuple2<>(count, sum);
+                })
+                .reduce(new Tuple2<>(0L, 0L), (a, b) -> new Tuple2<>(a.getT1() + b.getT1(), a.getT2() + b.getT2()));
+        ClassComingDTO classComingDto = new ClassComingDTO();
+        classComingDto.setSum(startTime.getT2());
+        classComingDto.setComing(startTime.getT1());
+        return classComingDto;
     }
 }

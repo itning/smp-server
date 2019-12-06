@@ -1,5 +1,6 @@
 package top.itning.smp.smpinfo.service;
 
+import top.itning.smp.smpinfo.dto.ApartmentDTO;
 import top.itning.smp.smpinfo.entity.Apartment;
 
 import java.util.List;
@@ -36,4 +37,11 @@ public interface ApartmentService {
      * @return 新增的公寓
      */
     Apartment saveApartment(String name);
+
+    /**
+     * 获取公寓信息
+     *
+     * @return 公寓信息
+     */
+    List<ApartmentDTO> getAllApartmentsWithPeople();
 }

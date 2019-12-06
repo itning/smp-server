@@ -5,6 +5,7 @@ import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -201,5 +202,22 @@ public class LeaveController {
     public List<LeaveDTO> getAllLeave(@RequestParam("whereDay") Date whereDay,
                                       @Nullable String username) {
         return leaveService.getLeaves(whereDay, username);
+    }
+
+    /**
+     * 计算请假人数
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @param username  导员用户名，如果为空则不要这个查询条件
+     * @return 请假人数
+     */
+    @GetMapping("/internal/leave/count")
+    public long countAllLeave(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                              @RequestParam("startDate") Date startDate,
+                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                              @RequestParam("endDate") Date endDate,
+                              @Nullable String username) {
+        return leaveService.countAllLeave(startDate, endDate, username);
     }
 }

@@ -2,11 +2,14 @@ package top.itning.smp.smpinfo.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import top.itning.smp.smpinfo.dto.ApartmentDTO;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.entity.RestModel;
 import top.itning.smp.smpinfo.security.LoginUser;
 import top.itning.smp.smpinfo.security.MustCounselorLogin;
 import top.itning.smp.smpinfo.service.ApartmentService;
+
+import java.util.List;
 
 /**
  * @author itning
@@ -61,5 +64,15 @@ public class ApartmentController {
     @PostMapping("/apartment")
     public ResponseEntity<?> addApartment(@MustCounselorLogin LoginUser loginUser, @RequestParam String name) {
         return RestModel.created(apartmentService.saveApartment(name));
+    }
+
+    /**
+     * 获取所有公寓信息
+     *
+     * @return 公寓信息集合
+     */
+    @GetMapping("/internal/apartments")
+    public List<ApartmentDTO> getAllApartments() {
+        return apartmentService.getAllApartmentsWithPeople();
     }
 }

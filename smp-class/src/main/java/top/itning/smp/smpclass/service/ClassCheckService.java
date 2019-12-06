@@ -2,6 +2,7 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import top.itning.smp.smpclass.dto.ClassComingDTO;
 import top.itning.smp.smpclass.dto.StudentClassCheckDTO;
 import top.itning.smp.smpclass.entity.StudentClassCheck;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
@@ -89,4 +90,13 @@ public interface ClassCheckService {
      * @throws IOException 导出异常
      */
     void exportCheck(LoginUser loginUser, String studentClassId, HttpServletResponse response) throws IOException;
+
+    /**
+     * 获取某天所有课堂出勤信息
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @return 出勤信息
+     */
+    ClassComingDTO classComingCount(Date startDate, Date endDate);
 }

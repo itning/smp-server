@@ -3,6 +3,7 @@ package top.itning.smp.smpclass.dao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import top.itning.smp.smpclass.entity.StudentClass;
 import top.itning.smp.smpclass.entity.StudentClassCheckMetaData;
 
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * @author itning
  */
-public interface StudentClassCheckMetaDataDao extends JpaRepository<StudentClassCheckMetaData, String> {
+public interface StudentClassCheckMetaDataDao extends JpaRepository<StudentClassCheckMetaData, String>, JpaSpecificationExecutor<StudentClassCheckMetaData> {
     /**
      * 查找最新的教师发起的签到信息
      *

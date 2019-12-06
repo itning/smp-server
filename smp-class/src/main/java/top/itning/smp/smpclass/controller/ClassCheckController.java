@@ -7,6 +7,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import top.itning.smp.smpclass.dto.ClassComingDTO;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.security.MustLogin;
@@ -137,5 +138,20 @@ public class ClassCheckController {
                             @RequestParam String studentClassId,
                             HttpServletResponse response) throws IOException {
         studentClassCheckService.exportCheck(loginUser, studentClassId, response);
+    }
+
+    /**
+     * 获取某天所有课堂出勤信息
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @return 出勤信息
+     */
+    @GetMapping("/internal/class_coming/count")
+    public ClassComingDTO countLeave(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                     @RequestParam Date startDate,
+                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                     @RequestParam Date endDate) {
+        return studentClassCheckService.classComingCount(startDate, endDate);
     }
 }

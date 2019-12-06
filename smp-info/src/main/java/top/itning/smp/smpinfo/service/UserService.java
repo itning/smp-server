@@ -99,4 +99,11 @@ public interface UserService {
      * @return 学生信息DTO
      */
     StudentUserDTO getStudentUserDtoByStudentId(String studentId);
+
+    /**
+     * 获取所有辅导员
+     *
+     * @return 所有辅导员
+     */
+    List<User> getAllCounselorUser();
 }

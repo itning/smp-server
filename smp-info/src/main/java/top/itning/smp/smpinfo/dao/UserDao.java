@@ -1,11 +1,11 @@
 package top.itning.smp.smpinfo.dao;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import top.itning.smp.smpinfo.entity.Role;
 import top.itning.smp.smpinfo.entity.User;
+
+import java.util.List;
 
 /**
  * @author itning
@@ -22,9 +22,8 @@ public interface UserDao extends JpaRepository<User, String>, JpaSpecificationEx
     /**
      * 根据角色查找
      *
-     * @param role     角色
-     * @param pageable 分页
+     * @param role 角色
      * @return 用户
      */
-    Page<User> findByRole(Role role, Pageable pageable);
+    List<User> findByRole(Role role);
 }

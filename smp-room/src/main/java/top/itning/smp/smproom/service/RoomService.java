@@ -67,4 +67,14 @@ public interface RoomService {
      * @throws IOException 导出异常
      */
     void export(OutputStream outputStream, Date whereDay, LoginUser loginUser) throws IOException;
+
+    /**
+     * 计算某天归寝人数
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @param username  导员用户名
+     * @return 人数
+     */
+    long comingRoomCount(String username, Date startDate, Date endDate);
 }

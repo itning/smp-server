@@ -58,4 +58,12 @@ public interface StudentClassCheckDao extends JpaRepository<StudentClassCheck, S
      * @return 学生签到
      */
     StudentClassCheck findTopByUserAndStudentClassAndStudentClassCheckMetaData(User user, StudentClass studentClass, StudentClassCheckMetaData studentClassCheckMetaData);
+
+    /**
+     * 根据元数据查找签到信息数量
+     *
+     * @param studentClassCheckMetaData 元数据
+     * @return 数量
+     */
+    long countAllByStudentClassCheckMetaData(StudentClassCheckMetaData studentClassCheckMetaData);
 }

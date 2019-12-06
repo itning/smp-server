@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.itning.smp.smpinfo.dao.ApartmentDao;
 import top.itning.smp.smpinfo.dao.StudentUserDao;
+import top.itning.smp.smpinfo.dto.ApartmentDTO;
 import top.itning.smp.smpinfo.entity.Apartment;
 import top.itning.smp.smpinfo.exception.NotInLineWithBusinessLogicException;
 import top.itning.smp.smpinfo.exception.NullFiledException;
@@ -13,6 +14,7 @@ import top.itning.smp.smpinfo.service.ApartmentService;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author itning
@@ -68,5 +70,18 @@ public class ApartmentServiceImpl implements ApartmentService {
         apartment.setGmtCreate(date);
         apartment.setGmtModified(date);
         return apartmentDao.save(apartment);
+    }
+
+    @Override
+    public List<ApartmentDTO> getAllApartmentsWithPeople() {
+        return apartmentDao.findAll()
+                .parallelStream()
+                .map(apartment -> {
+                    ApartmentDTO apartmentDTO = new ApartmentDTO();
+                    apartmentDTO.setName(apartment.getName());
+                    apartmentDTO.setPeople(studentUserDao.countByApartmentId(apartment.getId()));
+                    return apartmentDTO;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -101,4 +101,14 @@ public interface LeaveService {
      * @return 请假信息
      */
     Page<LeaveDTO> getStudentLeaves(Pageable pageable, LoginUser loginUser);
+
+    /**
+     * 计算请假人数
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @param username  导员用户名
+     * @return 人数
+     */
+    long countAllLeave(Date startDate, Date endDate, String username);
 }

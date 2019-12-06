@@ -116,21 +116,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public List<StudentRoomCheck> checkAll(Date whereDay, LoginUser loginUser) {
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
-        return studentRoomCheckDao.findAll((Specification<StudentRoomCheck>) (root, query, cb) -> {
-            List<Predicate> list = new ArrayList<>();
-
-            Tuple2<Date, Date> dateRange = getDateRange(whereDay);
-            list.add(cb.between(root.get("checkTime"), dateRange.getT1(), dateRange.getT2()));
-
-            Join<StudentRoomCheck, User> userJoin = root.join("user", JoinType.INNER);
-            Join<User, StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
-            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
-
-            query.orderBy(cb.desc(root.get("checkTime")));
-
-            Predicate[] p = new Predicate[list.size()];
-            return cb.and(list.toArray(p));
-        });
+        return studentRoomCheckDao.findAll(getStudentRoomCheckSpecification(whereDay, user));
     }
 
     @Override
@@ -190,6 +176,25 @@ public class RoomServiceImpl implements RoomService {
         // 添加未打卡同学信息
         addUnCheckInfo(sheet, unCheckList, redBackColorCellStyle, lastRowNum);
         sheets.write(outputStream);
+    }
+
+    @Override
+    public long comingRoomCount(String username, Date startDate, Date endDate) {
+        User user = infoClient.getUserInfoByUserName(username).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
+        return studentRoomCheckDao.count((Specification<StudentRoomCheck>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+
+            list.add(cb.between(root.get("checkTime"), startDate, endDate));
+
+            Join<StudentRoomCheck, User> userJoin = root.join("user", JoinType.INNER);
+            Join<User, StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+
+            query.orderBy(cb.desc(root.get("checkTime")));
+
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        });
     }
 
     /**
@@ -348,5 +353,23 @@ public class RoomServiceImpl implements RoomService {
         c7.setCellValue("坐标");
         XSSFCell c8 = headerRow.createCell(8);
         c8.setCellValue("照片");
+    }
+
+    private Specification<StudentRoomCheck> getStudentRoomCheckSpecification(Date whereDay, User user) {
+        return (Specification<StudentRoomCheck>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+
+            Tuple2<Date, Date> dateRange = getDateRange(whereDay);
+            list.add(cb.between(root.get("checkTime"), dateRange.getT1(), dateRange.getT2()));
+
+            Join<StudentRoomCheck, User> userJoin = root.join("user", JoinType.INNER);
+            Join<User, StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+            list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+
+            query.orderBy(cb.desc(root.get("checkTime")));
+
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        };
     }
 }

@@ -392,6 +392,13 @@ public class UserServiceImpl implements UserService {
         return OrikaUtils.doubleEntity2Dto(user, studentUser, StudentUserDTO.class);
     }
 
+    @Override
+    public List<User> getAllCounselorUser() {
+        Role role = new Role();
+        role.setId(COUNSELOR_ROLE_ID);
+        return userDao.findByRole(role);
+    }
+
     /**
      * 检查值
      */

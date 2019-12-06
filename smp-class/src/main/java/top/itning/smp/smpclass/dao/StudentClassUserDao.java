@@ -56,4 +56,12 @@ public interface StudentClassUserDao extends JpaRepository<StudentClassUser, Stu
      * @return 所有学生
      */
     List<StudentClassUser> findAllByStudentClass(StudentClass studentClass);
+
+    /**
+     * 查找某个班级的所有加入的学生数量
+     *
+     * @param studentClass 班级
+     * @return 数量
+     */
+    long countAllByStudentClass(StudentClass studentClass);
 }

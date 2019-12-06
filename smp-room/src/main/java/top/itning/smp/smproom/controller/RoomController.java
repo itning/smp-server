@@ -5,6 +5,7 @@ import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -164,5 +165,20 @@ public class RoomController {
                                @MustCounselorLogin LoginUser loginUser,
                                HttpServletResponse response) throws IOException {
         roomService.export(response.getOutputStream(), whereDay, loginUser);
+    }
+
+    /**
+     * 计算某天归寝人数
+     *
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @param username  导员用户名
+     * @return 人数
+     */
+    @GetMapping("/internal/coming/count/{username}")
+    public long comingRoomCount(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @RequestParam Date startDate,
+                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @RequestParam Date endDate,
+                                @PathVariable String username) {
+        return roomService.comingRoomCount(username, startDate, endDate);
     }
 }

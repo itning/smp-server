@@ -283,6 +283,24 @@ public class LeaveServiceImpl implements LeaveService {
         return leaveDao.findAllByUser(user, pageable).map(mapLeave2LeaveDto());
     }
 
+    @Override
+    public long countAllLeave(Date startDate, Date endDate, String username) {
+        return leaveDao.count((Specification<Leave>) (root, query, cb) -> {
+            List<Predicate> list = new ArrayList<>();
+            dateIntervalQuery(list, cb, root, "startTime", null, endDate);
+            dateIntervalQuery(list, cb, root, "endTime", startDate, null);
+            list.add(cb.equal(root.get("status"), true));
+            if (username != null) {
+                User user = infoClient.getUserInfoByUserName(username).orElseThrow(() -> new NullFiledException("用户不存在", HttpStatus.NOT_FOUND));
+                Join<Leave, User> userJoin = root.join("user", JoinType.INNER);
+                Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
+                list.add(cb.equal(studentUserJoin.get("belongCounselorId"), user.getId()));
+            }
+            Predicate[] p = new Predicate[list.size()];
+            return cb.and(list.toArray(p));
+        });
+    }
+
     /**
      * 转换Leave到LeaveDTO
      *
