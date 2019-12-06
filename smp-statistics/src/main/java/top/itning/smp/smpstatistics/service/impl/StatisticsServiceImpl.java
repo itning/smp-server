@@ -72,7 +72,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public ClassComing getClassComingChart(Date date, LoginUser loginUser) {
         Tuple2<Date, Date> dateRange = DateUtils.getDateRange(date);
-        return classClient.countLeave(
+        return classClient.classComingCount(
                 LocalDateTime.ofInstant(dateRange.getT1().toInstant(), ZoneId.of("Asia/Shanghai")).toLocalDate().toString(),
                 LocalDateTime.ofInstant(dateRange.getT2().toInstant(), ZoneId.of("Asia/Shanghai")).toLocalDate().toString()
         );
@@ -87,7 +87,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         return infoClient.getAllCounselorUser()
                 .parallelStream()
                 .map(user -> {
-                    ClassComing classComing = classClient.countLeave(last, first);
+                    ClassComing classComing = classClient.classComingCount(last, first);
                     AllCounselor allCounselor = new AllCounselor();
                     allCounselor.setClassComing(classComing);
                     allCounselor.setUser(user);

@@ -20,5 +20,5 @@ public interface ClassClient {
      * @return 出勤信息
      */
     @GetMapping("/internal/class_coming/count")
-    ClassComing countLeave(@RequestParam String startDate, @RequestParam String endDate);
+    ClassComing classComingCount(@RequestParam String startDate, @RequestParam String endDate);
 }

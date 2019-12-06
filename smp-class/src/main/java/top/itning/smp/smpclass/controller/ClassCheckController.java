@@ -148,7 +148,7 @@ public class ClassCheckController {
      * @return 出勤信息
      */
     @GetMapping("/internal/class_coming/count")
-    public ClassComingDTO countLeave(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    public ClassComingDTO classComingCount(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                      @RequestParam Date startDate,
                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                      @RequestParam Date endDate) {
