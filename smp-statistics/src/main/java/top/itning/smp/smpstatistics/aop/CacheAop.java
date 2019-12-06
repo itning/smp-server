@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import top.itning.smp.smpstatistics.security.LoginUser;
 import top.itning.smp.smpstatistics.util.DateUtils;
 
 import java.time.LocalDate;
@@ -24,13 +25,14 @@ import static top.itning.smp.smpstatistics.util.DateUtils.ZONE_ID;
 @Component
 public class CacheAop {
     private static final Logger logger = LoggerFactory.getLogger(CacheAop.class);
-    private static final int METHOD_PARAMS_LENGTH = 3;
-    private final Cache<String, Object> cache;
+    private static final int METHOD_PARAMS_LENGTH = 2;
+    private static final String NO_NEED_ADD_LOGIN_USER_KEY_METHOD_NAME = "getClassComingChart";
+    private static final Cache<String, Object> cache;
 
-    public CacheAop() {
+    static {
         cache = CacheBuilder
                 .newBuilder()
-                .maximumSize(50)
+                .maximumSize(100)
                 // 10min to remove
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .weakValues()
@@ -47,11 +49,17 @@ public class CacheAop {
         if (length == 0) {
             return joinPoint.proceed();
         }
-        if (length != METHOD_PARAMS_LENGTH) {
+        if (length == METHOD_PARAMS_LENGTH) {
             Date date = (Date) joinPoint.getArgs()[0];
+            LoginUser loginUser = (LoginUser) joinPoint.getArgs()[1];
             // 实时刷新的不要缓存
             if (!DateUtils.date2LocalDateTime(date).toLocalDate().equals(LocalDate.now(ZONE_ID))) {
-                String key = joinPoint.getSignature().toString() + date.getTime();
+                String key;
+                if (NO_NEED_ADD_LOGIN_USER_KEY_METHOD_NAME.equals(joinPoint.getSignature().getName())) {
+                    key = joinPoint.getSignature().toString() + date.getTime();
+                } else {
+                    key = joinPoint.getSignature().toString() + loginUser.toString() + date.getTime();
+                }
                 return getObject(joinPoint, key);
             }
             return joinPoint.proceed();
