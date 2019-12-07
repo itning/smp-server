@@ -161,4 +161,14 @@ public class UserController {
     public List<User> getAllCounselorUser() {
         return userService.getAllCounselorUser();
     }
+
+    /**
+     * 获取所有辅导员用户
+     *
+     * @return 用户
+     */
+    @PostMapping("/internal/pwd/user/change")
+    public boolean changeUserPwd(@RequestParam String username, @RequestParam String newPwd) {
+        return userService.changeUserPwd(username, newPwd);
+    }
 }

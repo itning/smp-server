@@ -52,6 +52,8 @@ public interface UserService {
 
     /**
      * 上传文件
+     * 学生用户名为学号
+     * 密码为姓名
      *
      * @param file      文件
      * @param loginUser 登录用户
@@ -106,4 +108,13 @@ public interface UserService {
      * @return 所有辅导员
      */
     List<User> getAllCounselorUser();
+
+    /**
+     * 更改密码
+     *
+     * @param username 用户名
+     * @param newPwd   新密码
+     * @return 更改成功返回<code>true</code>
+     */
+    boolean changeUserPwd(String username, String newPwd);
 }

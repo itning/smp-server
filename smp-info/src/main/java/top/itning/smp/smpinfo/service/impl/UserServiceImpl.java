@@ -398,6 +398,18 @@ public class UserServiceImpl implements UserService {
         return userDao.findByRole(role);
     }
 
+    @Override
+    public boolean changeUserPwd(String username, String newPwd) {
+        User user = userDao.findByUsername(username);
+        if (user == null) {
+            return false;
+        } else {
+            user.setPassword(newPwd);
+            User saved = userDao.save(user);
+            return saved.getPassword().equals(newPwd);
+        }
+    }
+
     /**
      * 检查值
      *
