@@ -1,5 +1,6 @@
 package top.itning.smp.smpclass.service.impl;
 
+import com.lzw.face.FaceHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.xssf.usermodel.*;
@@ -12,10 +13,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.client.InfoClient;
 import top.itning.smp.smpclass.client.LeaveClient;
 import top.itning.smp.smpclass.client.entity.LeaveDTO;
 import top.itning.smp.smpclass.client.entity.LeaveType;
+import top.itning.smp.smpclass.config.CustomProperties;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
@@ -27,12 +30,14 @@ import top.itning.smp.smpclass.exception.GpsException;
 import top.itning.smp.smpclass.exception.NullFiledException;
 import top.itning.smp.smpclass.exception.SecurityException;
 import top.itning.smp.smpclass.exception.UnexpectedException;
+import top.itning.smp.smpclass.repository.DefaultFaceRepository;
 import top.itning.smp.smpclass.security.LoginUser;
 import top.itning.smp.smpclass.service.ClassCheckService;
 import top.itning.smp.smpclass.util.DateUtils;
 import top.itning.smp.smpclass.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -55,15 +60,19 @@ public class ClassCheckServiceImpl implements ClassCheckService {
     private final StudentClassDao studentClassDao;
     private final InfoClient infoClient;
     private final LeaveClient leaveClient;
+    private final CustomProperties customProperties;
+    private final DefaultFaceRepository faceRepository;
 
     @Autowired
-    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, InfoClient infoClient, LeaveClient leaveClient) {
+    public ClassCheckServiceImpl(StudentClassCheckMetaDataDao studentClassCheckMetaDataDao, StudentClassCheckDao studentClassCheckDao, StudentClassUserDao studentClassUserDao, StudentClassDao studentClassDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, DefaultFaceRepository faceRepository) {
         this.studentClassCheckMetaDataDao = studentClassCheckMetaDataDao;
         this.studentClassCheckDao = studentClassCheckDao;
         this.studentClassUserDao = studentClassUserDao;
         this.studentClassDao = studentClassDao;
         this.infoClient = infoClient;
         this.leaveClient = leaveClient;
+        this.customProperties = customProperties;
+        this.faceRepository = faceRepository;
     }
 
     @Override
@@ -89,7 +98,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
     }
 
     @Override
-    public StudentClassCheck check(LoginUser loginUser, String studentClassId, double longitude, double latitude) {
+    public StudentClassCheck check(MultipartFile file, LoginUser loginUser, String studentClassId, double longitude, double latitude) throws IOException {
         if (longitude > MAX_LONGITUDE || longitude < MIN_LONGITUDE || latitude > MAX_LATITUDE || latitude < MIN_LATITUDE) {
             throw new GpsException(longitude, latitude);
         }
@@ -120,6 +129,12 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         }
         if (studentClassCheckDao.existsByUserAndStudentClassCheckMetaData(user, studentClassCheckMetaData)) {
             throw new NullFiledException("你已经签过到了，不能重复签到", HttpStatus.BAD_REQUEST);
+        }
+        Face face = faceRepository.findById(user.getId()).orElseThrow(() -> new NullFiledException("人脸未注册，请注册人脸", HttpStatus.NOT_FOUND));
+        float compare = FaceHelper.compare(FaceHelper.crop(ImageIO.read(file.getInputStream())), face.getBufferedImage());
+        logger.debug("user id: {} face compare: {} contrast accuracy threshold: {}", user.getId(), compare, customProperties.getContrastAccuracyThreshold());
+        if (compare < customProperties.getContrastAccuracyThreshold()) {
+            throw new NullFiledException("请自己打卡", HttpStatus.BAD_REQUEST);
         }
         StudentClassCheck studentClassCheck = new StudentClassCheck();
         studentClassCheck.setUser(user);

@@ -2,6 +2,7 @@ package top.itning.smp.smpclass.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.dto.ClassComingDTO;
 import top.itning.smp.smpclass.dto.StudentClassCheckDTO;
 import top.itning.smp.smpclass.entity.StudentClassCheck;
@@ -39,13 +40,15 @@ public interface ClassCheckService {
     /**
      * 学生课堂打卡
      *
+     * @param file           文件
      * @param loginUser      登录用户
      * @param studentClassId 学生班级ID
      * @param longitude      经度
      * @param latitude       纬度
      * @return 学生课堂签到
+     * @throws IOException IOException
      */
-    StudentClassCheck check(LoginUser loginUser, String studentClassId, double longitude, double latitude);
+    StudentClassCheck check(MultipartFile file, LoginUser loginUser, String studentClassId, double longitude, double latitude) throws IOException;
 
 
     /**

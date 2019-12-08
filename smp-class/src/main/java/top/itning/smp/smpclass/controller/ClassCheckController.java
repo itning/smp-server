@@ -7,6 +7,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.dto.ClassComingDTO;
 import top.itning.smp.smpclass.entity.RestModel;
 import top.itning.smp.smpclass.security.LoginUser;
@@ -67,13 +68,15 @@ public class ClassCheckController {
      * @param latitude       纬度
      * @param studentClassId 课堂ID
      * @return ResponseEntity
+     * @throws IOException IOException
      */
     @PostMapping("/check")
     public ResponseEntity<?> check(@MustStudentLogin LoginUser loginUser,
+                                   @RequestParam("file") MultipartFile file,
                                    @RequestParam("longitude") double longitude,
                                    @RequestParam("latitude") double latitude,
-                                   @RequestParam("studentClassId") String studentClassId) {
-        return RestModel.created(studentClassCheckService.check(loginUser, studentClassId, longitude, latitude));
+                                   @RequestParam("studentClassId") String studentClassId) throws IOException {
+        return RestModel.created(studentClassCheckService.check(file, loginUser, studentClassId, longitude, latitude));
     }
 
     /**
@@ -149,9 +152,9 @@ public class ClassCheckController {
      */
     @GetMapping("/internal/class_coming/count")
     public ClassComingDTO classComingCount(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                     @RequestParam Date startDate,
-                                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                     @RequestParam Date endDate) {
+                                           @RequestParam Date startDate,
+                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                                           @RequestParam Date endDate) {
         return studentClassCheckService.classComingCount(startDate, endDate);
     }
 }
