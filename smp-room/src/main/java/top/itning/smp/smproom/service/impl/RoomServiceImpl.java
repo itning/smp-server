@@ -1,5 +1,6 @@
 package top.itning.smp.smproom.service.impl;
 
+import com.lzw.face.FaceHelper;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
@@ -20,13 +21,13 @@ import top.itning.smp.smproom.client.entity.LeaveType;
 import top.itning.smp.smproom.client.entity.StudentUserDTO;
 import top.itning.smp.smproom.config.CustomProperties;
 import top.itning.smp.smproom.dao.StudentRoomCheckDao;
+import top.itning.smp.smproom.entity.Face;
 import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.entity.StudentUser;
 import top.itning.smp.smproom.entity.User;
-import top.itning.smp.smproom.exception.GpsException;
-import top.itning.smp.smproom.exception.IllegalCheckException;
-import top.itning.smp.smproom.exception.SavedException;
-import top.itning.smp.smproom.exception.UserNameDoesNotExistException;
+import top.itning.smp.smproom.exception.FileNotFoundException;
+import top.itning.smp.smproom.exception.*;
+import top.itning.smp.smproom.repository.DefaultFaceRepository;
 import top.itning.smp.smproom.security.LoginUser;
 import top.itning.smp.smproom.service.RoomCheckMetaDataService;
 import top.itning.smp.smproom.service.RoomService;
@@ -34,13 +35,12 @@ import top.itning.smp.smproom.util.DateUtils;
 import top.itning.smp.smproom.util.GpsUtils;
 import top.itning.utils.tuple.Tuple2;
 
+import javax.imageio.ImageIO;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,14 +62,16 @@ public class RoomServiceImpl implements RoomService {
     private final LeaveClient leaveClient;
     private final CustomProperties customProperties;
     private final RoomCheckMetaDataService roomCheckMetaDataService;
+    private final DefaultFaceRepository faceRepository;
 
     @Autowired
-    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, RoomCheckMetaDataService roomCheckMetaDataService) {
+    public RoomServiceImpl(StudentRoomCheckDao studentRoomCheckDao, InfoClient infoClient, LeaveClient leaveClient, CustomProperties customProperties, RoomCheckMetaDataService roomCheckMetaDataService, DefaultFaceRepository faceRepository) {
         this.studentRoomCheckDao = studentRoomCheckDao;
         this.infoClient = infoClient;
         this.leaveClient = leaveClient;
         this.customProperties = customProperties;
         this.roomCheckMetaDataService = roomCheckMetaDataService;
+        this.faceRepository = faceRepository;
     }
 
     @Override
@@ -95,11 +97,18 @@ public class RoomServiceImpl implements RoomService {
         if (!GpsUtils.isPtInPoly(longitude, latitude, roomCheckMetaDataService.getGpsRange(loginUser, true))) {
             throw new IllegalCheckException("打卡所在位置不在辅导员指定的区域内");
         }
+        Face face = faceRepository.findById(user.getId()).orElseThrow(() -> new FileNotFoundException("人脸未注册，请注册人脸"));
+        float compare = FaceHelper.compare(FaceHelper.crop(ImageIO.read(file.getInputStream())), face.getBufferedImage());
+        logger.debug("user id: {} face compare: {} contrast accuracy threshold: {}", user.getId(), compare, customProperties.getContrastAccuracyThreshold());
+        if (compare < customProperties.getContrastAccuracyThreshold()) {
+            throw new IllegalCheckException("请自己打卡");
+        }
         StudentRoomCheck studentRoomCheck = new StudentRoomCheck();
         studentRoomCheck.setUser(user);
         studentRoomCheck.setLongitude(longitude);
         studentRoomCheck.setLatitude(latitude);
         studentRoomCheck.setCheckTime(new Date());
+        studentRoomCheck.setCheckFaceSimilarity(compare);
         StudentRoomCheck saved = studentRoomCheckDao.save(studentRoomCheck);
         String filenameExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
         if (filenameExtension == null) {
@@ -195,6 +204,22 @@ public class RoomServiceImpl implements RoomService {
             Predicate[] p = new Predicate[list.size()];
             return cb.and(list.toArray(p));
         });
+    }
+
+    @Override
+    public String registerFace(MultipartFile file, LoginUser loginUser) throws IOException {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
+        Face face = new Face();
+        face.setId(user.getId());
+        BufferedImage image = FaceHelper.crop(ImageIO.read(file.getInputStream()));
+        if (image == null) {
+            throw new IllegalCheckException("未识别人脸，请重试");
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", outputStream);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        face.setInputStream(inputStream);
+        return faceRepository.save(face).getId();
     }
 
     /**

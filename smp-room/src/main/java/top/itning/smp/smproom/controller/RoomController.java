@@ -181,4 +181,17 @@ public class RoomController {
                                 @PathVariable String username) {
         return roomService.comingRoomCount(username, startDate, endDate);
     }
+
+    /**
+     * 学生注册人脸
+     *
+     * @param file 文件
+     * @return ResponseEntity
+     * @throws IOException IOException
+     */
+    @PostMapping("/face/register")
+    public ResponseEntity<?> registerFace(@MustStudentLogin LoginUser loginUser,
+                                          @RequestParam("file") MultipartFile file) throws IOException {
+        return RestModel.created(roomService.registerFace(file, loginUser));
+    }
 }

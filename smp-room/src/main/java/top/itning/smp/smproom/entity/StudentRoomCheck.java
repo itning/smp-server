@@ -47,6 +47,11 @@ public class StudentRoomCheck implements Serializable {
     @Column(nullable = false)
     private double latitude;
     /**
+     * 打卡时的人脸相似度
+     */
+    @Column(nullable = false)
+    private float checkFaceSimilarity;
+    /**
      * 创建时间
      */
     @Column(nullable = false)

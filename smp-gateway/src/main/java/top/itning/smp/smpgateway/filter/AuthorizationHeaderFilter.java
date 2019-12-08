@@ -36,7 +36,7 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
     /**
      * 忽略过滤路径
      */
-    private static final String[] IGNORE_SERVER_PATH = {"/security/login", "/room/check_image"};
+    private static final String[] IGNORE_SERVER_PATH = {"/security/login", "/room/check_image", "/room/face_image"};
 
     @Override
     public String filterType() {

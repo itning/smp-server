@@ -77,4 +77,14 @@ public interface RoomService {
      * @return 人数
      */
     long comingRoomCount(String username, Date startDate, Date endDate);
+
+    /**
+     * 注册人脸（允许重复注册，重复即覆盖）
+     *
+     * @param file      文件
+     * @param loginUser 登录用户
+     * @return 人脸ID
+     * @throws IOException IOException
+     */
+    String registerFace(MultipartFile file, LoginUser loginUser) throws IOException;
 }

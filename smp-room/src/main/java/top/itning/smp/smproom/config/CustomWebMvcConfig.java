@@ -22,5 +22,6 @@ public class CustomWebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/check_image/**").addResourceLocations("file:" + customProperties.getResourceLocation());
+        registry.addResourceHandler("/face_image/**").addResourceLocations("file:" + customProperties.getFaceLocation());
     }
 }
