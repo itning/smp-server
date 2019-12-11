@@ -66,4 +66,11 @@ public interface StudentClassCheckDao extends JpaRepository<StudentClassCheck, S
      * @return 数量
      */
     long countAllByStudentClassCheckMetaData(StudentClassCheckMetaData studentClassCheckMetaData);
+
+    /**
+     * 根据学生删除签到信息
+     *
+     * @param user 学生
+     */
+    void deleteAllByUser(User user);
 }

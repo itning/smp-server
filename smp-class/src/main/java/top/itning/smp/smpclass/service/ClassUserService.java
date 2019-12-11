@@ -109,4 +109,12 @@ public interface ClassUserService {
      * @throws IOException 文件解析异常
      */
     List<StudentClassUser> importStudentByFile(MultipartFile file, String studentClassId, LoginUser loginUser) throws IOException;
+
+    /**
+     * 删除某学生加入的班级信息
+     *
+     * @param counselorUsername 辅导员用户名
+     * @param studentUserName   学生用户名
+     */
+    void delClassUserInfo(String counselorUsername, String studentUserName);
 }

@@ -87,4 +87,12 @@ public interface RoomService {
      * @throws IOException IOException
      */
     String registerFace(MultipartFile file, LoginUser loginUser) throws IOException;
+
+    /**
+     * 删除寝室打卡信息
+     *
+     * @param counselorUsername 导员用户名
+     * @param studentUserName   学生姓名
+     */
+    void delRoomInfo(String counselorUsername, String studentUserName);
 }

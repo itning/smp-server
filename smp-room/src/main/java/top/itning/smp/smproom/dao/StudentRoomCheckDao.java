@@ -41,4 +41,19 @@ public interface StudentRoomCheckDao extends JpaRepository<StudentRoomCheck, Str
      * @return 是否打卡
      */
     boolean existsByUserAndCheckTimeBetween(User user, Date start, Date end);
+
+    /**
+     * 删除请假信息
+     *
+     * @param user 哪个学生
+     */
+    void deleteAllByUser(User user);
+
+    /**
+     * 根据用户查询寝室打卡信息
+     *
+     * @param user 用户
+     * @return 用户寝室打卡信息
+     */
+    List<StudentRoomCheck> findAllByUser(User user);
 }

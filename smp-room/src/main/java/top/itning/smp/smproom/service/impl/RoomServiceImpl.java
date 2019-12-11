@@ -26,6 +26,7 @@ import top.itning.smp.smproom.entity.StudentRoomCheck;
 import top.itning.smp.smproom.entity.StudentUser;
 import top.itning.smp.smproom.entity.User;
 import top.itning.smp.smproom.exception.FileNotFoundException;
+import top.itning.smp.smproom.exception.SecurityException;
 import top.itning.smp.smproom.exception.*;
 import top.itning.smp.smproom.repository.DefaultFaceRepository;
 import top.itning.smp.smproom.security.LoginUser;
@@ -103,22 +104,23 @@ public class RoomServiceImpl implements RoomService {
         if (compare < customProperties.getContrastAccuracyThreshold()) {
             throw new IllegalCheckException("请自己打卡");
         }
+        String filenameExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        if (filenameExtension == null) {
+            logger.warn("use default extension for path {}", file.getOriginalFilename());
+            filenameExtension = "jpg";
+        }
         StudentRoomCheck studentRoomCheck = new StudentRoomCheck();
         studentRoomCheck.setUser(user);
         studentRoomCheck.setLongitude(longitude);
         studentRoomCheck.setLatitude(latitude);
         studentRoomCheck.setCheckTime(new Date());
         studentRoomCheck.setCheckFaceSimilarity(compare);
+        studentRoomCheck.setFilenameExtension(filenameExtension);
         StudentRoomCheck saved = studentRoomCheckDao.save(studentRoomCheck);
-        String filenameExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        if (filenameExtension == null) {
-            logger.warn("use default extension for path {}", file.getOriginalFilename());
-            filenameExtension = "jpg";
-        }
         if (!StringUtils.hasText(saved.getId())) {
             throw new SavedException("数据库存储ID为空", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        file.transferTo(new File(customProperties.getResourceLocation() + saved.getId() + "." + filenameExtension));
+        file.transferTo(new File(customProperties.getResourceLocation() + saved.getId() + "." + saved.getFilenameExtension()));
         return saved;
     }
 
@@ -220,6 +222,23 @@ public class RoomServiceImpl implements RoomService {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         face.setInputStream(inputStream);
         return faceRepository.save(face).getId();
+    }
+
+    @Override
+    public void delRoomInfo(String counselorUsername, String studentUserName) {
+        User counselorUser = infoClient.getUserInfoByUserName(counselorUsername).orElseThrow(() -> new IllegalCheckException("用户不存在"));
+        StudentUser studentUser = infoClient.getStudentUserInfoByUserName(studentUserName).orElseThrow(() -> new IllegalCheckException("学生不存在"));
+        if (!studentUser.getBelongCounselorId().equals(counselorUser.getId())) {
+            throw new SecurityException("无法删除", HttpStatus.FORBIDDEN);
+        }
+        User user = new User();
+        user.setId(studentUser.getId());
+        //noinspection ResultOfMethodCallIgnored
+        studentRoomCheckDao.findAllByUser(user)
+                .stream()
+                .peek(studentRoomCheck -> new File(customProperties.getResourceLocation() + studentRoomCheck.getId() + "." + studentRoomCheck.getFilenameExtension()).delete())
+                .forEach(studentRoomCheck -> studentRoomCheckDao.deleteById(studentRoomCheck.getId()));
+        faceRepository.deleteById(studentUser.getId());
     }
 
     /**

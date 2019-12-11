@@ -268,6 +268,19 @@ public class ClassUserServiceImpl implements ClassUserService {
         return studentClassUserList;
     }
 
+    @Override
+    public void delClassUserInfo(String counselorUsername, String studentUserName) {
+        User counselorUser = infoClient.getUserInfoByUserName(counselorUsername).orElseThrow(() -> new UnexpectedException("用户不存在", HttpStatus.NOT_FOUND));
+        StudentUser studentUser = infoClient.getStudentUserInfoByUserName(studentUserName).orElseThrow(() -> new UnexpectedException("学生不存在", HttpStatus.NOT_FOUND));
+        if (!studentUser.getBelongCounselorId().equals(counselorUser.getId())) {
+            throw new SecurityException("无法删除", HttpStatus.FORBIDDEN);
+        }
+        User user = new User();
+        user.setId(studentUser.getId());
+        studentClassCheckDao.deleteAllByUser(user);
+        studentClassUserDao.deleteAllByUser(user);
+    }
+
     /**
      * 生成班号
      *

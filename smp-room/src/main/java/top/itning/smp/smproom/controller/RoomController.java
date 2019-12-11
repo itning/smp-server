@@ -168,6 +168,19 @@ public class RoomController {
     }
 
     /**
+     * 学生注册人脸
+     *
+     * @param file 文件
+     * @return ResponseEntity
+     * @throws IOException IOException
+     */
+    @PostMapping("/face/register")
+    public ResponseEntity<?> registerFace(@MustStudentLogin LoginUser loginUser,
+                                          @RequestParam("file") MultipartFile file) throws IOException {
+        return RestModel.created(roomService.registerFace(file, loginUser));
+    }
+
+    /**
      * 计算某天归寝人数
      *
      * @param startDate 开始日期
@@ -183,15 +196,14 @@ public class RoomController {
     }
 
     /**
-     * 学生注册人脸
+     * 删除寝室打卡信息
      *
-     * @param file 文件
-     * @return ResponseEntity
-     * @throws IOException IOException
+     * @param counselorUsername 导员用户名
+     * @param studentUserName   学生用户名
      */
-    @PostMapping("/face/register")
-    public ResponseEntity<?> registerFace(@MustStudentLogin LoginUser loginUser,
-                                          @RequestParam("file") MultipartFile file) throws IOException {
-        return RestModel.created(roomService.registerFace(file, loginUser));
+    @PostMapping("/internal/delete")
+    public void delRoomInfo(@RequestParam String counselorUsername,
+                            @RequestParam String studentUserName) {
+        roomService.delRoomInfo(counselorUsername, studentUserName);
     }
 }

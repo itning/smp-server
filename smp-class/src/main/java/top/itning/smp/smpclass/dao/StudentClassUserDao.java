@@ -64,4 +64,11 @@ public interface StudentClassUserDao extends JpaRepository<StudentClassUser, Stu
      * @return 数量
      */
     long countAllByStudentClass(StudentClass studentClass);
+
+    /**
+     * 删除某学生加入班级的信息
+     *
+     * @param user 学生
+     */
+    void deleteAllByUser(User user);
 }

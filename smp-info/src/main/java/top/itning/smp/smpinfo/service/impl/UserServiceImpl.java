@@ -15,6 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import top.itning.smp.smpinfo.client.ClassClient;
+import top.itning.smp.smpinfo.client.LeaveClient;
+import top.itning.smp.smpinfo.client.RoomClient;
 import top.itning.smp.smpinfo.dao.ApartmentDao;
 import top.itning.smp.smpinfo.dao.RoleDao;
 import top.itning.smp.smpinfo.dao.StudentUserDao;
@@ -84,10 +87,19 @@ public class UserServiceImpl implements UserService {
 
     private final ApartmentDao apartmentDao;
 
-    public UserServiceImpl(UserDao userDao, StudentUserDao studentUserDao, ApartmentDao apartmentDao, RoleDao roleDao) {
+    private final LeaveClient leaveClient;
+
+    private final ClassClient classClient;
+
+    private final RoomClient roomClient;
+
+    public UserServiceImpl(UserDao userDao, StudentUserDao studentUserDao, ApartmentDao apartmentDao, RoleDao roleDao, LeaveClient leaveClient, ClassClient classClient, RoomClient roomClient) {
         this.userDao = userDao;
         this.studentUserDao = studentUserDao;
         this.apartmentDao = apartmentDao;
+        this.leaveClient = leaveClient;
+        this.classClient = classClient;
+        this.roomClient = roomClient;
         checkAndInitRole(roleDao);
     }
 
@@ -228,7 +240,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delUser(String userId, LoginUser loginUser) {
         Optional<StudentUser> studentUserOptional = studentUserDao.findById(userId);
-        if (StringUtils.isBlank(userId) || !userDao.existsById(userId) || !studentUserOptional.isPresent()) {
+        Optional<User> studentUser = userDao.findById(userId);
+        if (StringUtils.isBlank(userId) || !studentUser.isPresent() || !studentUserOptional.isPresent()) {
             throw new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST);
         }
         User loginUserEntity = userDao.findByUsername(loginUser.getUsername());
@@ -236,6 +249,10 @@ public class UserServiceImpl implements UserService {
             // 不是这个辅导员的学生
             throw new SecurityException("删除失败", HttpStatus.FORBIDDEN);
         }
+        User user = studentUser.get();
+        classClient.delClassUserInfo(loginUser.getUsername(), user.getUsername());
+        leaveClient.delLeaveInfo(loginUser.getUsername(), user.getUsername());
+        roomClient.delRoomInfo(loginUser.getUsername(), user.getUsername());
         studentUserDao.delete(studentUserOptional.get());
         userDao.deleteById(userId);
     }

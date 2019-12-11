@@ -111,4 +111,12 @@ public interface LeaveService {
      * @return 人数
      */
     long countAllLeave(Date startDate, Date endDate, String username);
+
+    /**
+     * 删除请假信息
+     *
+     * @param counselorUsername 导员用户名
+     * @param studentUserName   学生用户名
+     */
+    void delLeaveInfo(String counselorUsername, String studentUserName);
 }

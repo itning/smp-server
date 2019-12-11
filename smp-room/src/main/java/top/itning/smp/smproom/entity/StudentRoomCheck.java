@@ -47,6 +47,11 @@ public class StudentRoomCheck implements Serializable {
     @Column(nullable = false)
     private double latitude;
     /**
+     * 文件扩展名
+     */
+    @Column(nullable = false)
+    private String filenameExtension;
+    /**
      * 打卡时的人脸相似度
      */
     @Column(nullable = false)

@@ -301,6 +301,21 @@ public class LeaveServiceImpl implements LeaveService {
         });
     }
 
+    @Override
+    public void delLeaveInfo(String counselorUsername, String studentUserName) {
+        User counselorUser = infoClient.getUserInfoByUserName(counselorUsername).orElseThrow(() -> new NullFiledException("用户不存在", HttpStatus.NOT_FOUND));
+        top.itning.smp.smpleave.client.entity.StudentUser studentUser = infoClient.getStudentUserInfoByUserName(studentUserName).orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.NOT_FOUND));
+        if (!studentUser.getBelongCounselorId().equals(counselorUser.getId())) {
+            throw new SecurityException("无法删除", HttpStatus.FORBIDDEN);
+        }
+        User user = new User();
+        user.setId(studentUser.getId());
+        leaveDao.findAllByUser(user)
+                .stream()
+                .peek(leave -> leaveReasonDao.deleteAll(leave.getLeaveReasonList()))
+                .forEach(leaveDao::delete);
+    }
+
     /**
      * 转换Leave到LeaveDTO
      *

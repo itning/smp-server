@@ -161,4 +161,16 @@ public class ClassUserController {
                                     @PathVariable String studentClassId) throws IOException {
         return RestModel.created(classUserService.importStudentByFile(file, studentClassId, loginUser));
     }
+
+    /**
+     * 删除某学生加入的班级信息
+     *
+     * @param counselorUsername 辅导员用户名
+     * @param studentUserName   学生用户名
+     */
+    @PostMapping("/internal/delete")
+    public void delClassUserInfo(@RequestParam String counselorUsername,
+                                 @RequestParam String studentUserName) {
+        classUserService.delClassUserInfo(counselorUsername, studentUserName);
+    }
 }

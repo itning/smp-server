@@ -220,4 +220,16 @@ public class LeaveController {
                               @Nullable String username) {
         return leaveService.countAllLeave(startDate, endDate, username);
     }
+
+    /**
+     * 删除某学生请假信息
+     *
+     * @param counselorUsername 导员用户名
+     * @param studentUserName   学生用户名
+     */
+    @PostMapping("/internal/delete")
+    public void delLeaveInfo(@RequestParam String counselorUsername,
+                             @RequestParam String studentUserName) {
+        leaveService.delLeaveInfo(counselorUsername, studentUserName);
+    }
 }
