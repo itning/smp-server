@@ -32,10 +32,9 @@ public class CacheAop {
     static {
         CACHE = CacheBuilder
                 .newBuilder()
-                .maximumSize(100)
+                .maximumSize(150)
                 // 10min to remove
                 .expireAfterWrite(10, TimeUnit.MINUTES)
-                .weakValues()
                 .build();
     }
 
