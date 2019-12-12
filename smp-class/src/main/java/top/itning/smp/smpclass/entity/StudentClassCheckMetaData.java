@@ -51,7 +51,7 @@ public class StudentClassCheckMetaData implements Serializable {
     /**
      * 元数据所对应的班级
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "studentClassId")
     private StudentClass studentClass;
     /**

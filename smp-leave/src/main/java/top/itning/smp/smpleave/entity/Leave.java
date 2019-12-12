@@ -61,7 +61,7 @@ public class Leave implements Serializable {
      * 评论
      */
     @OneToMany
-    @JoinColumn(name = "leaveId")
+    @JoinColumn(name = "leaveId", nullable = false)
     private List<LeaveReason> leaveReasonList;
     /**
      * 创建时间
