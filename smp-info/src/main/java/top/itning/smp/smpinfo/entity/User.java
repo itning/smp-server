@@ -33,6 +33,7 @@ public class User implements Serializable {
     /**
      * 电话
      */
+    @Column(length = 11, columnDefinition = "char(11)")
     private String tel;
     /**
      * 邮箱
