@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import top.itning.smp.smpgateway.entity.LoginUser;
 import top.itning.smp.smpgateway.exception.TokenException;
 import top.itning.smp.smpgateway.util.JwtUtils;
@@ -33,6 +34,14 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
  */
 @Component
 public class AuthorizationHeaderFilter extends ZuulFilter {
+    /**
+     * Ant匹配器
+     */
+    private static final AntPathMatcher ANT_PATH_MATCHER = new AntPathMatcher();
+    /**
+     * Ant Pattern
+     */
+    private static final String INTERNAL_PATTERN = "/*/internal/**";
     /**
      * 忽略过滤路径
      */
@@ -64,6 +73,9 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
     public Object run() throws ZuulException {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
+        if (isInternalUrl(request, requestContext)) {
+            return null;
+        }
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.isBlank(authorizationHeader)) {
             requestContext.setSendZuulResponse(false);
@@ -117,5 +129,39 @@ public class AuthorizationHeaderFilter extends ZuulFilter {
             }
         }
         return null;
+    }
+
+    /**
+     * 检查是不是内部链接
+     * <p>如果是内部链接直接禁止访问
+     *
+     * @param request        HttpServletRequest
+     * @param requestContext RequestContext
+     * @return 如果是内部链接返回<code>true</code>
+     * @throws ZuulException 写入response异常
+     */
+    private boolean isInternalUrl(HttpServletRequest request, RequestContext requestContext) throws ZuulException {
+        if (ANT_PATH_MATCHER.match(INTERNAL_PATTERN, request.getServletPath())) {
+            requestContext.setSendZuulResponse(false);
+            requestContext.setResponseStatusCode(HttpStatus.FORBIDDEN.value());
+            HttpServletResponse response = requestContext.getResponse();
+            response.setCharacterEncoding("utf-8");
+            response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+            try (PrintWriter writer = response.getWriter()) {
+                writer.write("{" +
+                        "\"code\":" +
+                        HttpStatus.FORBIDDEN.value() +
+                        "," +
+                        "\"msg\":\"" +
+                        HttpStatus.FORBIDDEN.getReasonPhrase() +
+                        "\",\"data\":\"\"}");
+                writer.flush();
+                requestContext.setResponse(response);
+            } catch (IOException e) {
+                throw new ZuulException(e.getMessage(), 500, e.getCause().getMessage());
+            }
+            return true;
+        }
+        return false;
     }
 }
