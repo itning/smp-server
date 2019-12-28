@@ -40,6 +40,9 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public void changePwd(top.itning.smp.smpsecurity.security.LoginUser loginUser, String newPassword) {
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UserNameDoesNotExistException("用户名不存在", HttpStatus.NOT_FOUND));
+        if (newPassword.equals(user.getPassword())) {
+            throw new UserPasswordException("新密码不能和旧密码相同", HttpStatus.BAD_REQUEST);
+        }
         boolean success = infoClient.changeUserPwd(user.getUsername(), newPassword);
         if (!success) {
             throw new UserPasswordException("更改失败", HttpStatus.INTERNAL_SERVER_ERROR);
