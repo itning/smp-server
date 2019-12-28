@@ -58,12 +58,12 @@ public class ApartmentController {
     /**
      * 添加公寓
      *
-     * @param name 公寓信息
+     * @param apartmentName 公寓信息
      * @return 新创建的公寓
      */
     @PostMapping("/apartment")
-    public ResponseEntity<?> addApartment(@MustCounselorLogin LoginUser loginUser, @RequestParam String name) {
-        return RestModel.created(apartmentService.saveApartment(name));
+    public ResponseEntity<?> addApartment(@MustCounselorLogin LoginUser loginUser, @RequestParam String apartmentName) {
+        return RestModel.created(apartmentService.saveApartment(apartmentName));
     }
 
     /**
