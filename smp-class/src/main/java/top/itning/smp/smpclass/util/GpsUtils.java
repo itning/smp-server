@@ -21,13 +21,10 @@ public class GpsUtils {
      * @return 距离（米）
      */
     public static float calculateLineDistance(double... coordinate) {
-        if (coordinate.length != 4) {
-            throw new IllegalArgumentException("calculateLineDistance method param length not 4");
-        } else {
-            float[] results = new float[1];
-            distanceBetween(coordinate[0], coordinate[1], coordinate[2], coordinate[3], results);
-            return results[0];
-        }
+        assert coordinate.length == 4;
+        float[] results = new float[1];
+        distanceBetween(coordinate[0], coordinate[1], coordinate[2], coordinate[3], results);
+        return results[0];
     }
 
     private static void distanceBetween(double startLatitude, double startLongitude,
