@@ -105,11 +105,11 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("学生班级不存在", HttpStatus.NOT_FOUND));
         StudentClassCheckMetaData studentClassCheckMetaData = studentClassCheckMetaDataDao.findTopByStudentClassOrderByGmtCreateDesc(studentClass);
         if (studentClassCheckMetaData == null) {
-            throw new NullFiledException("目前无法打卡", HttpStatus.BAD_REQUEST);
+            throw new NullFiledException("目前无法签到", HttpStatus.BAD_REQUEST);
         }
         Date endTime = studentClassCheckMetaData.getEndTime();
         if (!endTime.after(new Date())) {
-            throw new NullFiledException("目前无法打卡，教师未开启或已过期", HttpStatus.BAD_REQUEST);
+            throw new NullFiledException("目前无法签到，教师未开启或已过期", HttpStatus.BAD_REQUEST);
         }
         User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> {
             // 不应出现该异常，因为用户传参必然存在
@@ -117,7 +117,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
             return new UnexpectedException("内部错误，用户信息不存在", HttpStatus.INTERNAL_SERVER_ERROR);
         });
         if (leaveClient.isLeave(user.getUsername(), LeaveType.CLASS_LEAVE)) {
-            throw new NullFiledException("您今天已经请假了，无需打卡", HttpStatus.BAD_REQUEST);
+            throw new NullFiledException("您今天已经请假了，无需签到", HttpStatus.BAD_REQUEST);
         }
         float m = GpsUtils.calculateLineDistance(studentClassCheckMetaData.getLatitude(), studentClassCheckMetaData.getLongitude(),
                 latitude, longitude);
@@ -134,7 +134,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         float compare = FaceHelper.compare(FaceHelper.crop(ImageIO.read(file.getInputStream())), face.getBufferedImage());
         logger.debug("user id: {} face compare: {} contrast accuracy threshold: {}", user.getId(), compare, customProperties.getContrastAccuracyThreshold());
         if (compare < customProperties.getContrastAccuracyThreshold()) {
-            throw new NullFiledException("请自己打卡", HttpStatus.BAD_REQUEST);
+            throw new NullFiledException("请自己签到", HttpStatus.BAD_REQUEST);
         }
         StudentClassCheck studentClassCheck = new StudentClassCheck();
         studentClassCheck.setUser(user);
