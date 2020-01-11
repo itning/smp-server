@@ -10,7 +10,7 @@
     </parent>
     <groupId>top.itning.smp</groupId>
     <artifactId>smp-leave</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0.RELEASE</version>
     <name>smp-leave</name>
     <description>Demo project for Spring Boot</description>
 
