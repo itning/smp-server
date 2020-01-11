@@ -5,6 +5,8 @@ set RELEASE_VERSION=1.0.0.RELEASE
 set COPY_TARGET_DIR=%ROOT_DIR%release\
 set PROJECT_NAMES=smp-admin-server,smp-class,smp-config,smp-eureka,smp-gateway,smp-hystrix-dashboard,smp-info,smp-leave,smp-room,smp-security
 
+if not exist %COPY_TARGET_DIR% md %COPY_TARGET_DIR%
+
 echo ---------------------------------------------
 echo start bat
 echo ---------------------------------------------
