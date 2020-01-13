@@ -111,7 +111,7 @@ package.bat
 
 ```
 minSdkVersion 28
-手机必须是android p(9 sdk29)以上
+手机必须是android p(9 sdk28)以上
 ```
 
 ```bash
