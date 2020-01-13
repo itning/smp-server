@@ -69,8 +69,66 @@ spring.cloud.config.server.git.password=${env.GITEE_PASSWORD}
 spring.cloud.config.server.git.basedir=G:\\ProjectData\\IdeaProjects\\smp-server\\config-dir
 ```
 
-项目中的配置可以看``https://gitee.com/itning/smp-server-config``中的配置文件  
+项目中的配置可以看[https://gitee.com/itning/smp-server-config](https://gitee.com/itning/smp-server-config)中的配置文件
 
 # 项目打包
 
-windows直接运行项目根目录``package.bat``脚本                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+windows直接运行项目根目录``package.bat``脚本
+
+# 项目编译
+
+## 前端
+
+配置目录：``src/api/index.js``
+
+[高德地图开发者地址](https://lbs.amap.com/)
+
+```js
+SERVER_HOST=>后端地址
+API.key=>用于高德地图KEY
+```
+
+构建步骤
+
+```bash
+yarn
+yarn build
+```
+
+直接运行
+
+```bash
+yarn serve
+```
+
+## 后端
+
+```bash
+package.bat
+```
+
+## Android移动端
+
+```
+minSdkVersion 28
+手机必须是android p(9 sdk29)以上
+```
+
+```bash
+# 查看构建版本
+./gradlew -v
+# 清除build文件夹
+./gradlew clean
+# 检查依赖并编译打包
+./gradlew build
+# 编译并安装debug包
+./gradlew installDebug
+# 编译并打印日志
+./gradlew build --info
+# 译并输出性能报告，性能报告一般在 构建工程根目录 build/reports/profile
+./gradlew build --profile
+# 调试模式构建并打印堆栈日志
+./gradlew build --info --debug --stacktrace
+# 强制更新最新依赖，清除构建并构建
+./gradlew clean build --refresh-dependencies
+```                                                                                                                                                                                                                                                                          
