@@ -447,7 +447,7 @@ public class UserServiceImpl implements UserService {
             canSave = false;
             set.add(initErrorMsg(i, 2, "手机号%s长度错误", tel));
         }
-        if (!Pattern.matches(EMAIL_REGULAR, email)) {
+        if (email != null && !Pattern.matches(EMAIL_REGULAR, email)) {
             canSave = false;
             set.add(initErrorMsg(i, 3, "邮箱%s格式不正确", email));
         }
