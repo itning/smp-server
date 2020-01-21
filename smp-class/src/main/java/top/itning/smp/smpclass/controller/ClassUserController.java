@@ -163,6 +163,21 @@ public class ClassUserController {
     }
 
     /**
+     * 教师修改班级名称
+     *
+     * @param studentClassId      班级ID
+     * @param newStudentClassName 新班级名称
+     * @return ResponseEntity
+     */
+    @PostMapping("/student_class_name")
+    public ResponseEntity<?> modifyStudentClassName(@MustTeacherLogin LoginUser loginUser,
+                                                    @RequestParam String studentClassId,
+                                                    @RequestParam String newStudentClassName) {
+        classUserService.modifyStudentClassName(studentClassId, newStudentClassName, loginUser);
+        return RestModel.noContent();
+    }
+
+    /**
      * 删除某学生加入的班级信息
      *
      * @param counselorUsername 辅导员用户名

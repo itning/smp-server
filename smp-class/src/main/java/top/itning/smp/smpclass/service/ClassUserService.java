@@ -117,4 +117,13 @@ public interface ClassUserService {
      * @param studentUserName   学生用户名
      */
     void delClassUserInfo(String counselorUsername, String studentUserName);
+
+    /**
+     * 修改教师的班级名
+     *
+     * @param studentClassId      班级ID
+     * @param newStudentClassName 新班级名
+     * @param loginUser           登录教师
+     */
+    void modifyStudentClassName(String studentClassId, String newStudentClassName, LoginUser loginUser);
 }

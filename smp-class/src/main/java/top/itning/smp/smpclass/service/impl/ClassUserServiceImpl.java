@@ -281,6 +281,20 @@ public class ClassUserServiceImpl implements ClassUserService {
         studentClassUserDao.deleteAllByUser(user);
     }
 
+    @Override
+    public void modifyStudentClassName(String studentClassId, String newStudentClassName, LoginUser loginUser) {
+        User user = infoClient.getUserInfoByUserName(loginUser.getUsername()).orElseThrow(() -> new UnexpectedException("用户不存在", HttpStatus.NOT_FOUND));
+        StudentClass studentClass = studentClassDao.findById(studentClassId).orElseThrow(() -> new NullFiledException("班级不存在", HttpStatus.NOT_FOUND));
+        if (!studentClass.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("无法修改", HttpStatus.FORBIDDEN);
+        }
+        if (StringUtils.isBlank(newStudentClassName)) {
+            throw new NullFiledException("新班级名称不能为空", HttpStatus.BAD_REQUEST);
+        }
+        studentClass.setName(newStudentClassName);
+        studentClassDao.save(studentClass);
+    }
+
     /**
      * 生成班号
      *
