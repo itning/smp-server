@@ -41,10 +41,12 @@ public class ApartmentServiceImpl implements ApartmentService {
         if (apartment == null || StringUtils.isBlank(apartment.getId())) {
             throw new NullFiledException("ID为空", HttpStatus.BAD_REQUEST);
         }
+        if (apartmentDao.findByName(apartment.getName()) != null) {
+            throw new NullFiledException("公寓名不能重复", HttpStatus.BAD_REQUEST);
+        }
         Apartment a = apartmentDao.findById(apartment.getId()).orElseThrow(() -> new NullFiledException("公寓不存在", HttpStatus.BAD_REQUEST));
-        apartment.setGmtCreate(a.getGmtCreate());
-        apartment.setGmtModified(new Date());
-        apartmentDao.save(apartment);
+        a.setName(apartment.getName());
+        apartmentDao.save(a);
     }
 
     @Override
@@ -63,6 +65,9 @@ public class ApartmentServiceImpl implements ApartmentService {
     public Apartment saveApartment(String name) {
         if (StringUtils.isBlank(name)) {
             throw new NullFiledException("公寓名不能为空", HttpStatus.BAD_REQUEST);
+        }
+        if (apartmentDao.findByName(name) != null) {
+            throw new NullFiledException("公寓名不能重复", HttpStatus.BAD_REQUEST);
         }
         Apartment apartment = new Apartment();
         apartment.setName(name);
