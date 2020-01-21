@@ -63,4 +63,12 @@ public interface StudentUserDao extends JpaRepository<StudentUser, String>, JpaS
      * @return 学生信息
      */
     StudentUser findByStudentId(String studentId);
+
+    /**
+     * 根据身份证号查询学生是否存在
+     *
+     * @param idCard 身份证号
+     * @return 存在返回<code>true</code>
+     */
+    boolean existsByIdCard(String idCard);
 }

@@ -170,6 +170,13 @@ public class UserServiceImpl implements UserService {
             // 不是这个辅导员的学生
             throw new SecurityException("更新失败", HttpStatus.FORBIDDEN);
         }
+        if (studentUserDao.existsByStudentId(studentUserDTO.getStudentId())) {
+            throw new NullFiledException("学号重复", HttpStatus.BAD_REQUEST);
+        }
+        if (studentUserDao.existsByIdCard(studentUserDTO.getIdCard())) {
+            throw new NullFiledException("身份证号重复", HttpStatus.BAD_REQUEST);
+        }
+
         User savedUser = userDao
                 .findById(studentUserDTO.getId())
                 .orElseThrow(() -> new NullFiledException("学生不存在", HttpStatus.BAD_REQUEST));
