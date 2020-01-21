@@ -284,6 +284,8 @@ public class UserServiceImpl implements UserService {
         List<StudentUserDTO> studentUserDtoList = new ArrayList<>();
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
+        Set<String> idCardSet = new HashSet<>(Math.max((int) (lastRowNum / .75f) + 1, 16));
+        Set<String> studentIdSet = new HashSet<>(Math.max((int) (lastRowNum / .75f) + 1, 16));
         for (int i = 1; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
 
@@ -314,6 +316,19 @@ public class UserServiceImpl implements UserService {
             } catch (Exception e) {
                 canSave = false;
                 set.add(initErrorMsg(i, 5, "身份证号%s错误：%s", idCard, e.getMessage()));
+            }
+
+            if (studentIdSet.contains(studentId)) {
+                canSave = false;
+                set.add(initErrorMsg(i, 4, "学号%s重复", studentId));
+            } else {
+                studentIdSet.add(studentId);
+            }
+            if (idCardSet.contains(idCard)) {
+                canSave = false;
+                set.add(initErrorMsg(i, 5, "身份证号%s重复", studentId));
+            } else {
+                idCardSet.add(idCard);
             }
 
             if (canSave) {
@@ -447,7 +462,7 @@ public class UserServiceImpl implements UserService {
             canSave = false;
             set.add(initErrorMsg(i, 2, "手机号%s长度错误", tel));
         }
-        if (email != null && !Pattern.matches(EMAIL_REGULAR, email)) {
+        if (email == null || !Pattern.matches(EMAIL_REGULAR, email)) {
             canSave = false;
             set.add(initErrorMsg(i, 3, "邮箱%s格式不正确", email));
         }
