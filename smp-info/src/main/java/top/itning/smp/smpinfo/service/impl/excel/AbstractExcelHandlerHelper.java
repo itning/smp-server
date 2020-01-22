@@ -56,8 +56,8 @@ public abstract class AbstractExcelHandlerHelper extends AbstractReadExcel2Save 
     }
 
     @Override
-    protected UpFileDTO handleError(Set<String> errorInfoSet) {
-        return new UpFileDTO(null, null, errorInfoSet);
+    protected UpFileDTO handleError(List<String> errorInfoList) {
+        return new UpFileDTO(null, null, errorInfoList);
     }
 
     @Override
@@ -70,7 +70,7 @@ public abstract class AbstractExcelHandlerHelper extends AbstractReadExcel2Save 
             User savedUser = userDao.save(user);
             StudentUser studentUser = OrikaUtils.a2b(studentUserDTO, StudentUser.class);
             studentUser.setId(savedUser.getId());
-            studentUser.setBelongCounselorId(counselorUser.getId());
+            studentUser.setBelongCounselorId(super.counselorUser.getId());
             studentUserDao.save(studentUser);
         });
         long count = studentUserDao.count();
@@ -113,13 +113,13 @@ public abstract class AbstractExcelHandlerHelper extends AbstractReadExcel2Save 
         String studentId = excelData.getStudentId();
         String idCard = excelData.getIdCard();
         if (studentIdSet.contains(studentId)) {
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 4, "学号%s重复", studentId));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 4, "学号%s重复", studentId));
             result = false;
         } else {
             studentIdSet.add(studentId);
         }
         if (idCardSet.contains(idCard)) {
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 5, "身份证号%s重复", studentId));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 5, "身份证号%s重复", studentId));
             result = false;
         } else {
             idCardSet.add(idCard);

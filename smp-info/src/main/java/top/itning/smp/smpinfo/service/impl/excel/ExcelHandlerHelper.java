@@ -75,7 +75,7 @@ public final class ExcelHandlerHelper extends AbstractExcelHandlerHelper {
         try {
             return IdCardUtils.analysisIdCard(idCard);
         } catch (Exception e) {
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 5, "身份证号%s错误：%s", idCard, e.getMessage()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 5, "身份证号%s错误：%s", idCard, e.getMessage()));
             return null;
         }
     }
@@ -85,33 +85,33 @@ public final class ExcelHandlerHelper extends AbstractExcelHandlerHelper {
         boolean canSave = true;
         if (StringUtils.isBlank(excelData.getTel()) || excelData.getTel().trim().length() != TEL_LENGTH) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 2, "手机号%s长度错误", excelData.getTel()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 2, "手机号%s长度错误", excelData.getTel()));
         }
         if (excelData.getEmail() == null || !Pattern.matches(EMAIL_REGULAR, excelData.getEmail())) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 3, "邮箱%s格式不正确", excelData.getEmail()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 3, "邮箱%s格式不正确", excelData.getEmail()));
         }
         if (studentUserDao.existsByStudentId(excelData.getStudentId())) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 4, "学号%s重复，数据库已有该学号", excelData.getStudentId()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 4, "学号%s重复，数据库已有该学号", excelData.getStudentId()));
         }
         if (Arrays.stream(POLITICAL_RANGE_DATA).noneMatch(s -> s.equals(excelData.getPoliticalStatus()))) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 6, "政治面貌%s错误", excelData.getPoliticalStatus()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 6, "政治面貌%s错误", excelData.getPoliticalStatus()));
         }
         if (Arrays.stream(ETHNIC_RANGE_DATA).noneMatch(s -> s.equals(excelData.getEthnic()))) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 7, "民族%s错误", excelData.getEthnic()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 7, "民族%s错误", excelData.getEthnic()));
         }
         Apartment apartment = getApartment(excelData.getApartmentName());
         if (apartment == null || StringUtils.isBlank(apartment.getId())) {
             canSave = false;
-            super.errorInfoSet.add(initErrorMsg(rowIndex, 8, "公寓名%s没有找到", excelData.getApartmentName()));
+            super.errorInfoList.add(initErrorMsg(rowIndex, 8, "公寓名%s没有找到", excelData.getApartmentName()));
         } else {
             StudentUser studentUser = studentUserDao.findByApartmentAndRoomNumAndBedNum(apartment, excelData.getRoomNum(), excelData.getBedNum());
             if (studentUser != null) {
                 canSave = false;
-                super.errorInfoSet.add(initErrorMsg(rowIndex, 10, "%s %s寝室%s床铺 已经有同学(学号：%s)在住了", excelData.getApartmentName(), excelData.getRoomNum(), excelData.getBedNum(), studentUser.getStudentId()));
+                super.errorInfoList.add(initErrorMsg(rowIndex, 10, "%s %s寝室%s床铺 已经有同学(学号：%s)在住了", excelData.getApartmentName(), excelData.getRoomNum(), excelData.getBedNum(), studentUser.getStudentId()));
             }
         }
         return canSave;

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author itning
@@ -14,5 +14,5 @@ import java.util.Set;
 public class UpFileDTO implements Serializable {
     private Long now;
     private Long total;
-    private Set<String> error;
+    private List<String> error;
 }

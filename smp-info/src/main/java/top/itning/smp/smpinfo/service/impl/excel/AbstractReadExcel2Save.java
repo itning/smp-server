@@ -19,8 +19,6 @@ import top.itning.smp.smpinfo.security.LoginUser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import static top.itning.smp.smpinfo.entity.Role.STUDENT_ROLE_ID;
 
@@ -44,12 +42,11 @@ public abstract class AbstractReadExcel2Save {
 
     protected final UserDao userDao;
 
-    protected Workbook workbook;
     protected Role studentRole;
     /**
      * Excel文件错误信息
      */
-    protected Set<String> errorInfoSet = new TreeSet<>();
+    protected List<String> errorInfoList;
     /**
      * 辅导员用户
      */
@@ -60,32 +57,34 @@ public abstract class AbstractReadExcel2Save {
     }
 
     public final UpFileDTO readAndSave(MultipartFile file, LoginUser loginUser) throws IOException {
-        workbook = checkExcelFileCorrectnessAndGenerate(file);
+        Workbook workbook = checkExcelFileCorrectnessAndGenerate(file);
         initCommonMetaData(loginUser);
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
-        List<StudentUserDTO> studentUserDtoList = new ArrayList<>();
+        errorInfoList = new ArrayList<>(lastRowNum);
+        List<StudentUserDTO> studentUserDtoList = new ArrayList<>(lastRowNum);
         for (int i = 1; i <= lastRowNum; i++) {
             Row row = sheet.getRow(i);
             StudentUserDTO studentUserDto = handleEachRow(row, sheet, i, lastRowNum);
-            if (studentUserDto != null) {
+            if (errorInfoList.isEmpty() && studentUserDto != null) {
                 studentUserDtoList.add(studentUserDto);
             }
         }
-        if (errorInfoSet.isEmpty()) {
+        if (errorInfoList.isEmpty()) {
             return saveStudentInfo(studentUserDtoList);
         } else {
-            return handleError(errorInfoSet);
+            studentUserDtoList.clear();
+            return handleError(errorInfoList);
         }
     }
 
     /**
      * 处理错误
      *
-     * @param errorInfoSet 错误
+     * @param errorInfoList 错误
      * @return UpFileDTO
      */
-    protected abstract UpFileDTO handleError(Set<String> errorInfoSet);
+    protected abstract UpFileDTO handleError(List<String> errorInfoList);
 
     /**
      * 保存学生信息
