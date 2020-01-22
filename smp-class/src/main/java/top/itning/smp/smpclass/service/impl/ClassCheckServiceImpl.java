@@ -3,6 +3,7 @@ package top.itning.smp.smpclass.service.impl;
 import com.lzw.face.FaceHelper;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -291,6 +292,20 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         if (!user.getId().equals(studentClass.getUser().getId())) {
             throw new SecurityException("导出失败", HttpStatus.FORBIDDEN);
         }
+        Workbook workbook = generateExcelFileData(studentClass);
+        String fileName = new String((studentClass.getName() + ".xlsx").getBytes(), StandardCharsets.ISO_8859_1);
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        workbook.write(response.getOutputStream());
+    }
+
+    /**
+     * 生成签到Excel数据
+     *
+     * @param studentClass 学生班级
+     * @return Workbook
+     */
+    private Workbook generateExcelFileData(StudentClass studentClass) {
         // 班级所有学生
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClass);
         // 班级所有签到元数据
@@ -369,10 +384,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
             }
             checkInfoCellIndex++;
         }
-        String fileName = new String((studentClass.getName() + ".xlsx").getBytes(), StandardCharsets.ISO_8859_1);
-        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        sheets.write(response.getOutputStream());
+        return sheets;
     }
 
     @Override
