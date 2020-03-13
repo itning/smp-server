@@ -3,7 +3,7 @@ echo author itning
 set ROOT_DIR=%~dp0
 set RELEASE_VERSION=1.0.0.RELEASE
 set COPY_TARGET_DIR=%ROOT_DIR%release\
-set PROJECT_NAMES=smp-admin-server,smp-class,smp-config,smp-eureka,smp-gateway,smp-hystrix-dashboard,smp-info,smp-leave,smp-room,smp-security
+set PROJECT_NAMES=smp-admin-server,smp-class,smp-config,smp-eureka,smp-gateway,smp-hystrix-dashboard,smp-info,smp-leave,smp-room,smp-security,smp-statistics
 
 if not exist %COPY_TARGET_DIR% md %COPY_TARGET_DIR%
 
