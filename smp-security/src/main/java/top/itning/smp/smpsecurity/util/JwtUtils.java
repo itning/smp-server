@@ -15,6 +15,10 @@ import java.util.Date;
  * @author itning
  */
 public final class JwtUtils {
+    /**
+     * 一分钟的毫秒数
+     */
+    private static final int ONE_MINUTE_OF_MILLISECOND = 60 * 1000;
     private static final String PRIVATE_KEY = "itning";
     private static final String LOGIN_USER = "loginUser";
     private static final String DEFAULT_STR = "null";
@@ -29,7 +33,8 @@ public final class JwtUtils {
                 //SECRET_KEY是加密算法对应的密钥，这里使用额是HS256加密算法
                 .signWith(SignatureAlgorithm.HS256, PRIVATE_KEY)
                 //expTime是过期时间
-                .setExpiration(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
+                //12*60 即12h过期
+                .setExpiration(new Date(System.currentTimeMillis() + 12 * 60 * ONE_MINUTE_OF_MILLISECOND))
                 .claim(LOGIN_USER, MAPPER.writeValueAsString(o))
                 //令牌的发行者
                 .setIssuer("itning")
