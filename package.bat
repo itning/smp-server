@@ -1,4 +1,5 @@
 @echo off
+CHCP 65001
 echo author itning
 set ROOT_DIR=%~dp0
 set RELEASE_VERSION=1.0.0.RELEASE

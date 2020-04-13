@@ -1,4 +1,5 @@
 @echo off
+CHCP 65001
 echo author itning
 set ROOT_DIR=%~dp0
 set PROJECT_NAMES=smp-admin-server,smp-class,smp-config,smp-eureka,smp-gateway,smp-hystrix-dashboard,smp-info,smp-leave,smp-room,smp-security
