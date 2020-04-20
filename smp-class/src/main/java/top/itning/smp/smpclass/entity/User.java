@@ -45,11 +45,6 @@ public class User implements Serializable {
     @Column(nullable = false, unique = true)
     private String username;
     /**
-     * 密码
-     */
-    @Column(nullable = false)
-    private String password;
-    /**
      * 角色
      */
     @ManyToOne(optional = false)
