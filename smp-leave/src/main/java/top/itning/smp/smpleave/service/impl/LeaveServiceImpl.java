@@ -159,7 +159,7 @@ public class LeaveServiceImpl implements LeaveService {
                     dateIntervalQuery(list, cb, root, "endTime", localDateTime2Date(with0Time(getNow())), null);
                 } else {
                     logger.debug("search > end time");
-                    dateIntervalQuery(list, cb, root, "endTime", null, localDateTime2Date(getNextDayFromNow()));
+                    dateIntervalQuery(list, cb, root, "endTime", null, localDateTime2Date(with0Time(getNow())));
                 }
             }
             Join<User, top.itning.smp.smpleave.entity.StudentUser> studentUserJoin = userJoin.join("studentUser", JoinType.INNER);
