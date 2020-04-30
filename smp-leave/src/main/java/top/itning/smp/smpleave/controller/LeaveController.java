@@ -169,14 +169,14 @@ public class LeaveController {
     }
 
     /**
-     * 获取正在生效的请假信息数量
+     * 获取正在生效的寝室请假信息数量
      *
      * @param username 导员用户名
-     * @return 正在生效的请假信息数量
+     * @return 正在生效的寝室请假信息数量
      */
-    @GetMapping("/internal/leaves/inEffect/count")
-    public long inEffectLeaves(@RequestParam Date date, @RequestParam String username) {
-        return leaveService.countInEffectLeaves(date, username);
+    @GetMapping("/internal/leaves/roomInEffect/count")
+    public long roomInEffectLeaves(@RequestParam Date date, @RequestParam String username) {
+        return leaveService.countInEffectRoomLeaves(date, username);
     }
 
     /**

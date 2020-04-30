@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 public interface LeaveClient {
     /**
-     * 获取请假信息
+     * 获取请假信息（包括课假和寝室假）
      *
      * @param whereDay 哪天
      * @return 所有请假信息

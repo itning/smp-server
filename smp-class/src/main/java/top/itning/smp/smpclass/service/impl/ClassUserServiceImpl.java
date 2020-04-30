@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import top.itning.smp.smpclass.client.InfoClient;
 import top.itning.smp.smpclass.client.LeaveClient;
 import top.itning.smp.smpclass.client.entity.LeaveDTO;
+import top.itning.smp.smpclass.client.entity.LeaveType;
 import top.itning.smp.smpclass.dao.StudentClassCheckDao;
 import top.itning.smp.smpclass.dao.StudentClassCheckMetaDataDao;
 import top.itning.smp.smpclass.dao.StudentClassDao;
@@ -184,6 +185,7 @@ public class ClassUserServiceImpl implements ClassUserService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return leaveClient.getAllLeave(DateUtils.date2LocalDateTime(whereDay).format(formatter))
                 .stream()
+                .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
                 .filter(leaveDTO -> {
                     if (studentClassUserList == null || studentClassUserList.isEmpty()) {
                         return false;

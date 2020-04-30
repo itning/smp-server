@@ -67,13 +67,13 @@ public interface LeaveService {
     void leaveCheckStatusChange(String leaveId, boolean status, LoginUser loginUser);
 
     /**
-     * 获取正在生效的请假信息数量
+     * 获取正在生效的寝室请假信息数量
      *
      * @param date     目前日期
      * @param username 导员用户名
      * @return 正在生效的请假信息数量
      */
-    long countInEffectLeaves(Date date, String username);
+    long countInEffectRoomLeaves(Date date, String username);
 
     /**
      * 学生今天是否请假了

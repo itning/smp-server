@@ -111,7 +111,7 @@ public class DateUtils {
     }
 
     /**
-     * 获取startDate的0点到第二天0点
+     * 获取startDate的0点到startDate的23点59分59秒
      * 与输入的startDate时间无关
      *
      * @param startDate 开始日期
@@ -120,7 +120,7 @@ public class DateUtils {
     public static Tuple2<Date, Date> getDateRange(Date startDate) {
         LocalDateTime localDateTime = with0Time(date2LocalDateTime(startDate));
         Date t1 = localDateTime2Date(localDateTime);
-        Date t2 = localDateTime2Date(localDateTime.plusDays(1));
+        Date t2 = localDateTime2Date(with59Time(localDateTime));
         return new Tuple2<>(t1, t2);
     }
 }

@@ -187,7 +187,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         }
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClassCheckMetaData.getStudentClass());
         List<StudentClassCheck> studentClassCheckList = studentClassCheckDao.findAllByStudentClassCheckMetaData(studentClassCheckMetaData);
-        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1)).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE).collect(Collectors.toList());
         return studentClassUserList
                 .parallelStream()
                 .map(studentClassUser -> {
@@ -267,7 +267,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                         studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                         studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
                     }
-                    List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+                    List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1)).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE).collect(Collectors.toList());
                     for (LeaveDTO leaveDto : allLeave) {
                         if (leaveDto.getStudentUser().getId().equals(finalStudentUser.getId())) {
                             studentClassCheckDto.setCheck(null);
@@ -353,7 +353,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         int checkInfoCellIndex = 2;
         for (StudentClassCheckMetaData studentClassCheckMetaData : studentClassCheckMetaDataList) {
             // 本次元数据对应的那天的请假信息
-            List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1));
+            List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1)).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE).collect(Collectors.toList());
             XSSFCell cell = headerRow.createCell(headerCellIndex++);
             // 在表头设置签到日期
             cell.setCellValue(DateUtils.format(studentClassCheckMetaData.getStartTime(), DateUtils.YYYYMMDDHHMMSS_DATE_TIME_FORMATTER_2));

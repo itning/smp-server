@@ -16,14 +16,14 @@ import java.util.List;
 @Component
 public interface LeaveClient {
     /**
-     * 获取正在生效的请假信息数量
+     * 获取正在生效的寝室请假信息数量
      *
      * @param date     哪天开始
      * @param username 导员用户名
-     * @return 正在生效的请假信息数量
+     * @return 正在生效的寝室请假信息数量
      */
-    @GetMapping("/internal/leaves/inEffect/count")
-    long countInEffectLeaves(@RequestParam("date") String date, @RequestParam("username") String username);
+    @GetMapping("/internal/leaves/roomInEffect/count")
+    long countInEffectRoomLeaves(@RequestParam("date") String date, @RequestParam("username") String username);
 
     /**
      * 学生今天是否请假了
@@ -36,7 +36,7 @@ public interface LeaveClient {
     boolean isLeave(@RequestParam("userName") String userName, @RequestParam("leaveType") LeaveType leaveType);
 
     /**
-     * 获取请假信息
+     * 获取请假信息（包括课假和寝室假）
      *
      * @param whereDay 哪天
      * @param username 导员用户名

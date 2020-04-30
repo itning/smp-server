@@ -133,7 +133,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public Tuple2<Long, Long> countShouldRoomCheck(String date, LoginUser loginUser) {
         long countStudent = infoClient.countStudent(loginUser.getUsername());
-        long countInEffectLeaves = leaveClient.countInEffectLeaves(date, loginUser.getUsername());
+        long countInEffectLeaves = leaveClient.countInEffectRoomLeaves(date, loginUser.getUsername());
         logger.debug("countStudent {} countInEffectLeaves {}", countStudent, countInEffectLeaves);
         return new Tuple2<>(countStudent, countInEffectLeaves);
     }
@@ -150,8 +150,8 @@ public class RoomServiceImpl implements RoomService {
         List<StudentUserDTO> allUser = infoClient.getAllUser(loginUser.getUsername());
         // 所有打卡同学
         List<StudentRoomCheck> studentRoomCheckList = this.checkAll(whereDay, loginUser);
-        // 所有请假同学
-        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(whereDay, DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1), loginUser.getUsername());
+        // 所有请寝室假同学
+        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(whereDay, DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1), loginUser.getUsername()).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.CLASS_LEAVE).collect(Collectors.toList());
         // 所有未打卡同学（排除请假的同学）
         List<StudentUserDTO> unCheckList = allUser
                 .parallelStream()
