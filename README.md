@@ -124,9 +124,9 @@ spring.cloud.config.server.git.basedir=G:\\ProjectData\\IdeaProjects\\smp-server
 
 ### Excel模板文件
 
-[学生信息导入模板]([https://github.com/itning/smp-server/blob/master/pic/%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AF%BC%E5%85%A5%E6%A8%A1%E6%9D%BF.xlsx](https://github.com/itning/smp-server/blob/master/pic/学生信息导入模板.xlsx))
+[学生信息导入模板](https://github.com/itning/smp-server/blob/master/pic/%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AF%BC%E5%85%A5%E6%A8%A1%E6%9D%BF.xlsx)
 
-[班级信息导入模板]([https://github.com/itning/smp-server/blob/master/pic/%E7%8F%AD%E7%BA%A7%E4%BF%A1%E6%81%AF%E5%AF%BC%E5%85%A5%E6%A8%A1%E6%9D%BF.xlsx](https://github.com/itning/smp-server/blob/master/pic/班级信息导入模板.xlsx))
+[班级信息导入模板](https://github.com/itning/smp-server/blob/master/pic/%E7%8F%AD%E7%BA%A7%E4%BF%A1%E6%81%AF%E5%AF%BC%E5%85%A5%E6%A8%A1%E6%9D%BF.xlsx)
 
 ## 项目打包
 
