@@ -13,6 +13,16 @@
 [![HitCount](http://hits.dwyl.io/itning/smp-server.svg)](http://hits.dwyl.io/itning/smp-server)
 [![language](https://img.shields.io/badge/language-JAVA-green.svg)](https://github.com/itning/smp-server)
 
+## 图
+
+### 功能结构图
+
+![功能结构图](https://raw.githubusercontent.com/itning/smp-server/master/pic/image/functional-structure-diagram.png)
+
+### 系统运行原理图
+
+![系统运行原理图](https://raw.githubusercontent.com/itning/smp-server/master/pic/image/schematic-diagram-of-system-operation.png)
+
 ## 工程
 
 1. 前端项目
