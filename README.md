@@ -194,3 +194,9 @@ package.bat
 # 强制更新最新依赖，清除构建并构建
 ./gradlew clean build --refresh-dependencies
 ```
+
+## 版权声明
+
+该项目仅用于学习，禁止用于商业用途。
+
+项目是我个人毕业项目，**不建议作为您毕业项目来使用**。
