@@ -188,18 +188,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         }
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClassCheckMetaData.getStudentClass());
         List<StudentClassCheck> studentClassCheckList = studentClassCheckDao.findAllByStudentClassCheckMetaData(studentClassCheckMetaData);
-        List<LeaveDTO> allLeave = leaveClient
-                .getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1))
-                .stream()
-                .filter(leaveDTO -> {
-                    if (Objects.isNull(leaveDTO.getStatus())) {
-                        return false;
-                    } else {
-                        return leaveDTO.getStatus();
-                    }
-                })
-                .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
-                .collect(Collectors.toList());
+        List<LeaveDTO> allLeave = getLeaveDTOList(studentClassCheckMetaData);
         return studentClassUserList
                 .parallelStream()
                 .map(studentClassUser -> {
@@ -227,6 +216,28 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                     }
                     return studentClassCheckDto;
                 })
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 获取请假信息集合
+     *
+     * @param studentClassCheckMetaData 学生班级签到元数据
+     * @return 请假信息集合
+     */
+    private List<LeaveDTO> getLeaveDTOList(StudentClassCheckMetaData studentClassCheckMetaData) {
+        return leaveClient
+                .getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1))
+                .stream()
+                .filter(leaveDTO -> {
+                    if (Objects.isNull(leaveDTO.getStatus())) {
+                        return false;
+                    } else {
+                        return leaveDTO.getStatus();
+                    }
+                })
+                .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
                 .collect(Collectors.toList());
     }
 
@@ -279,18 +290,7 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                         studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                         studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
                     }
-                    List<LeaveDTO> allLeave = leaveClient
-                            .getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1))
-                            .stream()
-                            .filter(leaveDTO -> {
-                                if (Objects.isNull(leaveDTO.getStatus())) {
-                                    return false;
-                                } else {
-                                    return leaveDTO.getStatus();
-                                }
-                            })
-                            .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
-                            .collect(Collectors.toList());
+                    List<LeaveDTO> allLeave = getLeaveDTOList(studentClassCheckMetaData);
                     for (LeaveDTO leaveDto : allLeave) {
                         if (leaveDto.getStudentUser().getId().equals(finalStudentUser.getId())) {
                             studentClassCheckDto.setCheck(null);
