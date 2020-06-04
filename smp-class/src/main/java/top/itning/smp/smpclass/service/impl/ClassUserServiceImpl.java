@@ -37,10 +37,7 @@ import top.itning.smp.smpclass.util.OrikaUtils;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -185,6 +182,13 @@ public class ClassUserServiceImpl implements ClassUserService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return leaveClient.getAllLeave(DateUtils.date2LocalDateTime(whereDay).format(formatter))
                 .stream()
+                .filter(leaveDTO -> {
+                    if (Objects.isNull(leaveDTO.getStatus())) {
+                        return false;
+                    } else {
+                        return leaveDTO.getStatus();
+                    }
+                })
                 .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
                 .filter(leaveDTO -> {
                     if (studentClassUserList == null || studentClassUserList.isEmpty()) {

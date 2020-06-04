@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static top.itning.smp.smpclass.util.GpsUtils.*;
@@ -187,7 +188,18 @@ public class ClassCheckServiceImpl implements ClassCheckService {
         }
         List<StudentClassUser> studentClassUserList = studentClassUserDao.findAllByStudentClass(studentClassCheckMetaData.getStudentClass());
         List<StudentClassCheck> studentClassCheckList = studentClassCheckDao.findAllByStudentClassCheckMetaData(studentClassCheckMetaData);
-        List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1)).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE).collect(Collectors.toList());
+        List<LeaveDTO> allLeave = leaveClient
+                .getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1))
+                .stream()
+                .filter(leaveDTO -> {
+                    if (Objects.isNull(leaveDTO.getStatus())) {
+                        return false;
+                    } else {
+                        return leaveDTO.getStatus();
+                    }
+                })
+                .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
+                .collect(Collectors.toList());
         return studentClassUserList
                 .parallelStream()
                 .map(studentClassUser -> {
@@ -267,7 +279,18 @@ public class ClassCheckServiceImpl implements ClassCheckService {
                         studentClassCheckDto.setGmtCreate(studentClassCheck.getGmtCreate());
                         studentClassCheckDto.setGmtModified(studentClassCheck.getGmtModified());
                     }
-                    List<LeaveDTO> allLeave = leaveClient.getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1)).stream().filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE).collect(Collectors.toList());
+                    List<LeaveDTO> allLeave = leaveClient
+                            .getAllLeave(DateUtils.format(studentClassCheckMetaData.getGmtCreate(), DateUtils.YYYYMMDD_DATE_TIME_FORMATTER_1))
+                            .stream()
+                            .filter(leaveDTO -> {
+                                if (Objects.isNull(leaveDTO.getStatus())) {
+                                    return false;
+                                } else {
+                                    return leaveDTO.getStatus();
+                                }
+                            })
+                            .filter(leaveDTO -> leaveDTO.getLeaveType() != LeaveType.ROOM_LEAVE)
+                            .collect(Collectors.toList());
                     for (LeaveDTO leaveDto : allLeave) {
                         if (leaveDto.getStudentUser().getId().equals(finalStudentUser.getId())) {
                             studentClassCheckDto.setCheck(null);
