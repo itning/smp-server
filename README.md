@@ -10,7 +10,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/itning/smp-server.svg)](https://github.com/itning/smp-server/commits)
 [![GitHub release](https://img.shields.io/github/release/itning/smp-server.svg)](https://github.com/itning/smp-server/releases)
 [![GitHub repo size in bytes](https://img.shields.io/github/repo-size/itning/smp-server.svg)](https://github.com/itning/smp-server)
-[![HitCount](http://hits.dwyl.com/itning/smp-server.svg)](http://hits.dwyl.com/itning/smp-server)
+[![Hits](https://hitcount.itning.top?u=itning&r=smp-server)](https://github.com/itning/hit-count)
 [![language](https://img.shields.io/badge/language-JAVA-green.svg)](https://github.com/itning/smp-server)
 
 ## 图
